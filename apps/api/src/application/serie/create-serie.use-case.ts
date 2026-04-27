@@ -1,15 +1,15 @@
 import { Effect } from "effect";
 
 import { validateDomainSerie, type NewSerie } from "../../domain/serie.js";
-import { SerieRepo } from "./serie.repo.port.js";
+import { SerieRepository } from "./serie.repo.port.js";
 
-export const createSerie = (newSerie: NewSerie) =>
+export const createSerieUseCase = (newSerie: NewSerie) =>
   Effect.gen(function* () {
     const validatedSerie = yield* validateDomainSerie(newSerie);
 
-    const serieRepo = yield* SerieRepo;
+    const serieRepository = yield* SerieRepository;
 
-    const persistedSerie = yield* serieRepo.save(validatedSerie);
+    const persistedSerie = yield* serieRepository.save(validatedSerie);
 
     return persistedSerie;
   });

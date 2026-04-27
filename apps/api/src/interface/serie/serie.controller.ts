@@ -1,6 +1,6 @@
 import { Data, Effect } from "effect";
 
-import { createSerie } from "../../application/serie/create-serie.use-case.js";
+import { createSerieUseCase } from "../../application/serie/create-serie.use-case.js";
 import type { Serie } from "../../domain/serie.js";
 import z from "zod";
 
@@ -36,7 +36,7 @@ export const createSerieHttpHandler = (input: unknown) =>
   Effect.gen(function* () {
     const parsedSerie = yield* parseCreateSerieInput(input);
 
-    const serie = yield* createSerie(parsedSerie);
+    const serie = yield* createSerieUseCase(parsedSerie);
 
     return yield* mapToClientShape(serie);
   });
