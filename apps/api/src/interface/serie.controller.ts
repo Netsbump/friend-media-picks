@@ -1,7 +1,7 @@
 import { Data, Effect } from "effect";
 
-import { createSerieUseCase } from "../../application/serie/create-serie.use-case.js";
-import type { Serie } from "../../domain/serie.js";
+import { createSerieUseCase } from "../application/create-serie.use-case.js";
+import type { Serie } from "../domain/serie.js";
 import z from "zod";
 
 const createSerieSchema = z.object({
@@ -14,7 +14,7 @@ const createSerieSchema = z.object({
 
 type CreateSerieInput = z.infer<typeof createSerieSchema>;
 
-class ValidationError extends Data.TaggedError("ValidationError")<{
+export class ValidationError extends Data.TaggedError("ValidationError")<{
   issues: z.ZodError["issues"];
 }> {}
 
@@ -28,7 +28,7 @@ const parseCreateSerieInput = (
       : Effect.fail(new ValidationError({ issues: parsed.error.issues }));
   });
 
-//TODO If case we need to map for Client
+//TODO If needed
 const mapToClientShape = (serie: Serie): Effect.Effect<Serie> =>
   Effect.succeed(serie);
 

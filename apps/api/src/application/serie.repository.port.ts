@@ -1,11 +1,16 @@
 import { Context, Data, Effect } from "effect";
 
-import type { NewSerie, Serie } from "../../domain/serie.js";
+import type { NewSerie, Serie } from "../domain/serie.js";
+
+export const SerieRepositoryErrorReason = {
+  SAVE_FAILED: "SAVE_FAILED",
+  CONNECTION_UNAVAILABLE: "CONNECTION_UNAVAILABLE",
+  SCHEMA_MISSING: "SCHEMA_MISSING",
+  UNKNOWN: "UNKNOWN",
+} as const;
 
 export type SerieRepositoryErrorReason =
-  | "save_failed"
-  | "connection_unavailable"
-  | "unknown";
+  (typeof SerieRepositoryErrorReason)[keyof typeof SerieRepositoryErrorReason];
 
 export class SerieRepositoryError extends Data.TaggedError(
   "SerieRepositoryError",

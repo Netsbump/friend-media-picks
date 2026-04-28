@@ -17,23 +17,41 @@ export type NewSerie = {
   releaseAt: Date;
 };
 
+const CodeDomainError = {
+  EMPTY_TITLE: "EMPTY_TITLE",
+  INVALID_SEASONS: "INVALID_SEASONS",
+} as const;
+
+type CodeDomainError = (typeof CodeDomainError)[keyof typeof CodeDomainError];
+
 export class DomainError extends Data.TaggedError("DomainError")<{
+  code: CodeDomainError;
   message: string;
 }> {}
 
-export const validateDomainSerie = (
+const validateTitle = (title: string): Effect.Effect<void, DomainError> =>
+  title.trim().length > 0
+    ? Effect.void
+    : Effect.fail(
+        new DomainError({
+          code: CodeDomainError.EMPTY_TITLE,
+          message: "Title cannot be empty.",
+        }),
+      );
+
+const validateSeasons = (seasons: number): Effect.Effect<void, DomainError> =>
+  seasons > 0
+    ? Effect.void
+    : Effect.fail(
+        new DomainError({
+          code: CodeDomainError.INVALID_SEASONS,
+          message: "Serie must have at least one season.",
+        }),
+      );
+
+export const validateNewSerie = (
   input: NewSerie,
 ): Effect.Effect<NewSerie, DomainError> =>
-  Effect.gen(function* () {
-    if (input.title.trim().length === 0) {
-      return yield* new DomainError({ message: "Title cannot be empty." });
-    }
-
-    if (input.seasons <= 0) {
-      return yield* new DomainError({
-        message: "Season must have at least one season.",
-      });
-    }
-
-    return input;
-  });
+  Effect.all([validateTitle(input.title), validateSeasons(input.seasons)]).pipe(
+    Effect.as(input),
+  );
