@@ -3,7 +3,7 @@ import { Data } from "effect";
 import {
   SerieRepositoryErrorReason,
   type SerieRepositoryErrorReason as SerieRepositoryErrorReasonType,
-} from "../../application/serie.repository.port.js";
+} from "../../infrastructure/serie.repository.js";
 import { env } from "../../../config/env.config.js";
 
 export const ApiErrorCode = {

@@ -28,9 +28,7 @@ const parseCreateSerieInput = (
       : Effect.fail(new ValidationError({ issues: parsed.error.issues }));
   });
 
-//TODO If needed
-const mapToClientShape = (serie: Serie): Effect.Effect<Serie> =>
-  Effect.succeed(serie);
+const mapToClientShape = (serie: Serie): Serie => serie;
 
 export const createSerieHttpHandler = (input: unknown) =>
   Effect.gen(function* () {
@@ -38,5 +36,5 @@ export const createSerieHttpHandler = (input: unknown) =>
 
     const serie = yield* createSerieUseCase(parsedSerie);
 
-    return yield* mapToClientShape(serie);
+    return mapToClientShape(serie);
   });

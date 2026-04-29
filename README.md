@@ -1,6 +1,6 @@
 # Friend Media Picks
 
-Backend learning project built with Effect TS and a Clean Architecture style, while keeping the codebase lightweight and avoiding unnecessary OOP boilerplate.
+Backend learning project built with Effect TS, using a pragmatic Functional Core / Imperative Shell approach inspired by Clean Architecture, while keeping the codebase lightweight and avoiding unnecessary OOP boilerplate.
 
 ## Tech Stack
 

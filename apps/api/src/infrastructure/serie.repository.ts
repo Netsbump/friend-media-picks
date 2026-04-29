@@ -1,15 +1,33 @@
-import { Effect, Layer } from "effect";
+import { Context, Data, Effect, Layer } from "effect";
 import type { NewSerie, Serie } from "../domain/serie.js";
 import type { Database } from "./database/kysely.js";
 import type { Insertable, Selectable } from "kysely";
-import {
-  SerieRepository,
-  SerieRepositoryError,
-  SerieRepositoryErrorReason,
-  type SerieRepositoryErrorReason as SerieRepositoryErrorReasonType,
-} from "../application/serie.repository.port.js";
 import { DbClient } from "./database/db.client.port.js";
 import { PgSqlState } from "./database/pg-sqlstate.js";
+
+export const SerieRepositoryErrorReason = {
+  SAVE_FAILED: "SAVE_FAILED",
+  CONNECTION_UNAVAILABLE: "CONNECTION_UNAVAILABLE",
+  SCHEMA_MISSING: "SCHEMA_MISSING",
+  UNKNOWN: "UNKNOWN",
+} as const;
+
+export type SerieRepositoryErrorReason =
+  (typeof SerieRepositoryErrorReason)[keyof typeof SerieRepositoryErrorReason];
+
+export class SerieRepositoryError extends Data.TaggedError(
+  "SerieRepositoryError",
+)<{
+  message: string;
+  reason: SerieRepositoryErrorReason;
+}> {}
+
+export class SerieRepository extends Context.Tag("SerieRepository")<
+  SerieRepository,
+  {
+    save: (newSerie: NewSerie) => Effect.Effect<Serie, SerieRepositoryError>;
+  }
+>() {}
 
 type SerieRow = Selectable<Database["series"]>;
 type SerieInsert = Insertable<Database["series"]>;
@@ -38,7 +56,7 @@ type PgLikeError = {
 
 const mapDatabaseErrorReason = (
   error: PgLikeError,
-): SerieRepositoryErrorReasonType => {
+): SerieRepositoryErrorReason => {
   if (error.code === PgSqlState.UNIQUE_VIOLATION) {
     return SerieRepositoryErrorReason.SAVE_FAILED;
   }

@@ -1,8 +1,8 @@
 import { HttpServerResponse } from "@effect/platform";
 import { Effect } from "effect";
 
-import { SerieRepositoryError } from "../../application/serie.repository.port.js";
 import { DomainError } from "../../domain/serie.js";
+import { SerieRepositoryError } from "../../infrastructure/serie.repository.js";
 import { ValidationError } from "../serie.controller.js";
 import { toApiError } from "./api-error.js";
 

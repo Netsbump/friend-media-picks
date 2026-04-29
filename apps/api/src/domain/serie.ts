@@ -1,4 +1,4 @@
-import { Data, Effect } from "effect";
+import { Data } from "effect";
 
 export type Serie = {
   id: string;
@@ -29,29 +29,38 @@ export class DomainError extends Data.TaggedError("DomainError")<{
   message: string;
 }> {}
 
-const validateTitle = (title: string): Effect.Effect<void, DomainError> =>
+export type ValidatedNewSerie = NewSerie;
+
+export type DomainValidationResult =
+  | { readonly success: true; readonly value: ValidatedNewSerie }
+  | { readonly success: false; readonly error: DomainError };
+
+const validateTitle = (title: string): DomainError | null =>
   title.trim().length > 0
-    ? Effect.void
-    : Effect.fail(
-        new DomainError({
-          code: CodeDomainError.EMPTY_TITLE,
-          message: "Title cannot be empty.",
-        }),
-      );
+    ? null
+    : new DomainError({
+        code: CodeDomainError.EMPTY_TITLE,
+        message: "Title cannot be empty.",
+      });
 
-const validateSeasons = (seasons: number): Effect.Effect<void, DomainError> =>
+const validateSeasons = (seasons: number): DomainError | null =>
   seasons > 0
-    ? Effect.void
-    : Effect.fail(
-        new DomainError({
-          code: CodeDomainError.INVALID_SEASONS,
-          message: "Serie must have at least one season.",
-        }),
-      );
+    ? null
+    : new DomainError({
+        code: CodeDomainError.INVALID_SEASONS,
+        message: "Serie must have at least one season.",
+      });
 
-export const validateNewSerie = (
-  input: NewSerie,
-): Effect.Effect<NewSerie, DomainError> =>
-  Effect.all([validateTitle(input.title), validateSeasons(input.seasons)]).pipe(
-    Effect.as(input),
-  );
+export const validateNewSerie = (input: NewSerie): DomainValidationResult => {
+  const titleError = validateTitle(input.title);
+  if (titleError) {
+    return { success: false, error: titleError };
+  }
+
+  const seasonsError = validateSeasons(input.seasons);
+  if (seasonsError) {
+    return { success: false, error: seasonsError };
+  }
+
+  return { success: true, value: input };
+};
