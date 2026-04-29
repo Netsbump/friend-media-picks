@@ -3,7 +3,7 @@ import { Kysely, PostgresDialect } from "kysely";
 import { Pool } from "pg";
 
 import { env } from "../../../config/env.config.js";
-import { series } from "../serie.schema.js";
+import type { series } from "../serie.schema.js";
 import { Data, Effect } from "effect";
 
 export type Database = {
@@ -12,9 +12,7 @@ export type Database = {
 
 const CONNECTION_STRING = "CONNECTION_STRING";
 
-export class ConnectionStringError extends Data.TaggedError(
-  "ConnectionStringError",
-)<{
+export class ConnectionStringError extends Data.TaggedError("ConnectionStringError")<{
   code: typeof CONNECTION_STRING;
   message: string;
 }> {}
@@ -33,8 +31,7 @@ const validateConnectionString = (
 
 export const makeDb = (connectionString = env.databaseUrl) =>
   Effect.gen(function* () {
-    const validConnectionString =
-      yield* validateConnectionString(connectionString);
+    const validConnectionString = yield* validateConnectionString(connectionString);
 
     return new Kysely<Database>({
       dialect: new PostgresDialect({

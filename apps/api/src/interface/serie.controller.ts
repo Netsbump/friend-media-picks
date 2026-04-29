@@ -18,9 +18,7 @@ export class ValidationError extends Data.TaggedError("ValidationError")<{
   issues: z.ZodError["issues"];
 }> {}
 
-const parseCreateSerieInput = (
-  input: unknown,
-): Effect.Effect<CreateSerieInput, ValidationError> =>
+const parseCreateSerieInput = (input: unknown): Effect.Effect<CreateSerieInput, ValidationError> =>
   Effect.suspend(() => {
     const parsed = createSerieSchema.safeParse(input);
     return parsed.success

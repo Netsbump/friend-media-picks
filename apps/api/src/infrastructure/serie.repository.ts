@@ -15,9 +15,7 @@ export const SerieRepositoryErrorReason = {
 export type SerieRepositoryErrorReason =
   (typeof SerieRepositoryErrorReason)[keyof typeof SerieRepositoryErrorReason];
 
-export class SerieRepositoryError extends Data.TaggedError(
-  "SerieRepositoryError",
-)<{
+export class SerieRepositoryError extends Data.TaggedError("SerieRepositoryError")<{
   message: string;
   reason: SerieRepositoryErrorReason;
 }> {}
@@ -54,9 +52,7 @@ type PgLikeError = {
   message?: string;
 };
 
-const mapDatabaseErrorReason = (
-  error: PgLikeError,
-): SerieRepositoryErrorReason => {
+const mapDatabaseErrorReason = (error: PgLikeError): SerieRepositoryErrorReason => {
   if (error.code === PgSqlState.UNIQUE_VIOLATION) {
     return SerieRepositoryErrorReason.SAVE_FAILED;
   }
@@ -97,10 +93,7 @@ export const SerieRepositoryLive = Layer.effect(
           },
           catch: (e) => {
             const message = e instanceof Error ? e.message : String(e);
-            const pgLikeError =
-              e && typeof e === "object"
-                ? (e as PgLikeError)
-                : { message };
+            const pgLikeError = e && typeof e === "object" ? (e as PgLikeError) : { message };
 
             return new SerieRepositoryError({
               message,
