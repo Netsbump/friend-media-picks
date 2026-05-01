@@ -3,7 +3,7 @@ import { Effect } from "effect";
 
 import type { DomainError } from "../../domain/serie.js";
 import type { SerieRepositoryError } from "../../infrastructure/serie.repository.js";
-import type { ValidationError } from "../serie.controller.js";
+import type { RequestValidationError } from "../serie.controller.js";
 import { toApiError } from "./api-error.js";
 
 const toResponse = (error: unknown) => {
@@ -24,7 +24,7 @@ const logError = (error: unknown) =>
 export const withHttpErrors = <A, R>(effect: Effect.Effect<A, unknown, R>) =>
   effect.pipe(
     Effect.catchTags({
-      ValidationError: (error: ValidationError) =>
+      ValidationError: (error: RequestValidationError) =>
         logError(error).pipe(Effect.andThen(toResponse(error))),
       DomainError: (error: DomainError) => logError(error).pipe(Effect.andThen(toResponse(error))),
       SerieRepositoryError: (error: SerieRepositoryError) =>

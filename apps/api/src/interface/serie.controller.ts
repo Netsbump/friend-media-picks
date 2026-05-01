@@ -12,18 +12,16 @@ const createSerieSchema = z.object({
   releaseAt: z.coerce.date(),
 });
 
-type CreateSerieInput = z.infer<typeof createSerieSchema>;
-
-export class ValidationError extends Data.TaggedError("ValidationError")<{
+export class RequestValidationError extends Data.TaggedError("ValidationError")<{
   issues: z.ZodError["issues"];
 }> {}
 
-const parseCreateSerieInput = (input: unknown): Effect.Effect<CreateSerieInput, ValidationError> =>
+const parseCreateSerieInput = (input: unknown) =>
   Effect.suspend(() => {
     const parsed = createSerieSchema.safeParse(input);
     return parsed.success
       ? Effect.succeed(parsed.data)
-      : Effect.fail(new ValidationError({ issues: parsed.error.issues }));
+      : Effect.fail(new RequestValidationError({ issues: parsed.error.issues }));
   });
 
 const mapToClientShape = (serie: Serie): Serie => serie;

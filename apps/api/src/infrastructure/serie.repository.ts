@@ -1,5 +1,10 @@
 import { Context, Data, Effect, Layer } from "effect";
-import type { NewSerie, Serie } from "../domain/serie.js";
+import {
+  unwrapSeasonCount,
+  unwrapTitleSerie,
+  type Serie,
+  type ValidatedNewSerie,
+} from "../domain/serie.js";
 import type { Database } from "./database/kysely.js";
 import type { Insertable, Selectable } from "kysely";
 import { DbClient } from "./database/db.client.port.js";
@@ -23,17 +28,17 @@ export class SerieRepositoryError extends Data.TaggedError("SerieRepositoryError
 export class SerieRepository extends Context.Tag("SerieRepository")<
   SerieRepository,
   {
-    save: (newSerie: NewSerie) => Effect.Effect<Serie, SerieRepositoryError>;
+    save: (newSerie: ValidatedNewSerie) => Effect.Effect<Serie, SerieRepositoryError>;
   }
 >() {}
 
 type SerieRow = Selectable<Database["series"]>;
 type SerieInsert = Insertable<Database["series"]>;
 
-const mapNewSerieToInsert = (newSerie: NewSerie): SerieInsert => ({
-  title: newSerie.title,
+const mapNewSerieToInsert = (newSerie: ValidatedNewSerie): SerieInsert => ({
+  title: unwrapTitleSerie(newSerie.title),
   description: newSerie.description,
-  seasons: newSerie.seasons,
+  seasons: unwrapSeasonCount(newSerie.seasons),
   producer: newSerie.producer,
   release_at: newSerie.releaseAt,
 });
@@ -80,7 +85,7 @@ export const SerieRepositoryLive = Layer.effect(
     const { db } = yield* DbClient;
 
     return {
-      save: (newSerie: NewSerie) =>
+      save: (newSerie: ValidatedNewSerie) =>
         Effect.tryPromise({
           try: async () => {
             const row = await db

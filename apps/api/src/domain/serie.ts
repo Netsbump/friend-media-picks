@@ -1,4 +1,46 @@
-import { Data } from "effect";
+type Brand<T, B extends string> = T & { readonly __brand: B };
+
+// Value Object (types)
+export type SerieTitle = Brand<string, "SerieTitle">;
+export type SeasonCount = Brand<number, "SeasonCount">;
+
+export type DomainError =
+  | { code: "EMPTY_TITLE"; message: string }
+  | { code: "INVALID_SEASONS"; message: string };
+
+export type Result<T> = { success: true; value: T } | { success: false; error: DomainError };
+
+export const makeSerieTitle = (raw: string): Result<SerieTitle> => {
+  const value = raw.trim();
+  if (value.length === 0) {
+    return {
+      success: false,
+      error: { code: "EMPTY_TITLE", message: "Title cannot be empty." },
+    };
+  }
+
+  return {
+    success: true,
+    value: value as SerieTitle,
+  };
+};
+
+export const makeSeasonsCount = (raw: number): Result<SeasonCount> => {
+  if (!Number.isInteger(raw) || raw <= 0) {
+    return {
+      success: false,
+      error: { code: "INVALID_SEASONS", message: "Serie must have at least one season." },
+    };
+  }
+
+  return {
+    success: true,
+    value: raw as SeasonCount,
+  };
+};
+
+export const unwrapTitleSerie = (title: SerieTitle): string => title;
+export const unwrapSeasonCount = (count: SeasonCount): number => count;
 
 export type Serie = {
   id: string;
@@ -9,7 +51,7 @@ export type Serie = {
   releaseAt: Date;
 };
 
-export type NewSerie = {
+export type NewSerieInput = {
   title: string;
   description: string;
   seasons: number;
@@ -17,50 +59,29 @@ export type NewSerie = {
   releaseAt: Date;
 };
 
-const CodeDomainError = {
-  EMPTY_TITLE: "EMPTY_TITLE",
-  INVALID_SEASONS: "INVALID_SEASONS",
-} as const;
+export type ValidatedNewSerie = {
+  title: SerieTitle;
+  description: string;
+  seasons: SeasonCount;
+  producer: string;
+  releaseAt: Date;
+};
 
-type CodeDomainError = (typeof CodeDomainError)[keyof typeof CodeDomainError];
+export const validateNewSerie = (input: NewSerieInput): Result<ValidatedNewSerie> => {
+  const title = makeSerieTitle(input.title);
+  if (!title.success) return title;
 
-export class DomainError extends Data.TaggedError("DomainError")<{
-  code: CodeDomainError;
-  message: string;
-}> {}
+  const seasons = makeSeasonsCount(input.seasons);
+  if (!seasons.success) return seasons;
 
-export type ValidatedNewSerie = NewSerie;
-
-export type DomainValidationResult =
-  | { readonly success: true; readonly value: ValidatedNewSerie }
-  | { readonly success: false; readonly error: DomainError };
-
-const validateTitle = (title: string): DomainError | null =>
-  title.trim().length > 0
-    ? null
-    : new DomainError({
-        code: CodeDomainError.EMPTY_TITLE,
-        message: "Title cannot be empty.",
-      });
-
-const validateSeasons = (seasons: number): DomainError | null =>
-  seasons > 0
-    ? null
-    : new DomainError({
-        code: CodeDomainError.INVALID_SEASONS,
-        message: "Serie must have at least one season.",
-      });
-
-export const validateNewSerie = (input: NewSerie): DomainValidationResult => {
-  const titleError = validateTitle(input.title);
-  if (titleError) {
-    return { success: false, error: titleError };
-  }
-
-  const seasonsError = validateSeasons(input.seasons);
-  if (seasonsError) {
-    return { success: false, error: seasonsError };
-  }
-
-  return { success: true, value: input };
+  return {
+    success: true,
+    value: {
+      title: title.value,
+      description: input.description,
+      seasons: seasons.value,
+      producer: input.producer,
+      releaseAt: input.releaseAt,
+    },
+  };
 };
