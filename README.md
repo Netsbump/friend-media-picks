@@ -70,6 +70,15 @@ curl -X POST http://localhost:3000/series \
 - DB migrate: `pnpm --filter @friend-media-picks/api db:migrate`
 - DB Studio: `pnpm --filter @friend-media-picks/api db:studio`
 
+## Vendored Sources for Agents
+
+This repository vendors the Effect source code in `repos/effect` to improve coding-agent output quality.
+
+- `repos/effect` is part of this repository (git subtree), so it is present after a normal clone.
+- Update subtree when needed: `git subtree pull --prefix=repos/effect https://github.com/Effect-TS/effect.git main --squash`
+
+Rules are documented in `AGENTS.md`.
+
 ## Troubleshooting
 
 - If you get `SCHEMA_MISSING` or `relation "series" does not exist`, run:
