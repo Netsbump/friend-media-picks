@@ -3,8 +3,7 @@ import dotenv from "dotenv";
 import { Data, Effect } from "effect";
 import * as Schema from "effect/Schema";
 
-// Resolve environment files for workspace-level defaults and API-level overrides.
-const rootEnvPath = resolve(process.cwd(), "../../.env");
+// Resolve API environment file path.
 const apiEnvPath = resolve(process.cwd(), ".env");
 
 // Define an explicit typed error for environment loading/validation failures.
@@ -14,53 +13,45 @@ export class EnvError extends Data.TaggedError("EnvError")<{
 
 // Validate and normalize environment variables used by the API.
 const envSchema = Schema.Struct({
-  NODE_ENV: Schema.optionalWith(Schema.Literal("development", "production"), {
-    default: () => "development",
-  }),
-  POSTGRES_USER: Schema.optionalWith(Schema.String, { default: () => "postgres" }),
-  POSTGRES_PASSWORD: Schema.optionalWith(Schema.String, { default: () => "postgres" }),
-  POSTGRES_DB: Schema.optionalWith(Schema.String, { default: () => "friend_media_picks" }),
-  POSTGRES_HOST: Schema.optionalWith(Schema.String, { default: () => "localhost" }),
-  POSTGRES_PORT: Schema.optionalWith(
-    Schema.NumberFromString.pipe(Schema.int(), Schema.positive()),
-    { default: () => 5435 },
-  ),
-  DATABASE_URL: Schema.optional(Schema.String),
+  NODE_ENV: Schema.Literal("development", "test", "production"),
+  DB_USER: Schema.String,
+  DB_PASSWORD: Schema.String,
+  DB_NAME: Schema.String,
+  DB_HOST: Schema.String,
+  DB_PORT: Schema.NumberFromString.pipe(Schema.int(), Schema.positive()),
 });
 
-// Load root variables first, then allow API-local values to override them.
+// Load API-local variables used by the running API process.
 const loadDotenv = Effect.sync(() => {
-  dotenv.config({ path: rootEnvPath, override: false, quiet: true });
   dotenv.config({ path: apiEnvPath, override: true, quiet: true });
 });
 
 // Decode process.env and map parsing failures to a typed EnvError.
-const parseEnv = Schema.decodeUnknown(envSchema)(process.env).pipe(
-  Effect.mapError(
-    (cause) =>
-      new EnvError({
-        message: `Invalid environment configuration: ${cause.message}`,
-      }),
-  ),
-);
+const parseEnv = () =>
+  Schema.decodeUnknown(envSchema)(process.env).pipe(
+    Effect.mapError(
+      (cause) =>
+        new EnvError({
+          message: `Invalid environment configuration: ${cause.message}`,
+        }),
+    ),
+  );
 
 // Build a normalized immutable config object from validated inputs.
 export const loadEnv = Effect.gen(function* () {
   yield* loadDotenv;
-  const parsed = yield* parseEnv;
+  const parsed = yield* parseEnv();
 
-  const databaseUrl =
-    parsed.DATABASE_URL ??
-    `postgres://${parsed.POSTGRES_USER}:${parsed.POSTGRES_PASSWORD}@${parsed.POSTGRES_HOST}:${parsed.POSTGRES_PORT}/${parsed.POSTGRES_DB}`;
+  const databaseUrl = `postgres://${parsed.DB_USER}:${parsed.DB_PASSWORD}@${parsed.DB_HOST}:${parsed.DB_PORT}/${parsed.DB_NAME}`;
 
   return {
     nodeEnv: parsed.NODE_ENV,
     postgres: {
-      user: parsed.POSTGRES_USER,
-      password: parsed.POSTGRES_PASSWORD,
-      db: parsed.POSTGRES_DB,
-      host: parsed.POSTGRES_HOST,
-      port: parsed.POSTGRES_PORT,
+      user: parsed.DB_USER,
+      password: parsed.DB_PASSWORD,
+      db: parsed.DB_NAME,
+      host: parsed.DB_HOST,
+      port: parsed.DB_PORT,
     },
     databaseUrl,
   } as const;
