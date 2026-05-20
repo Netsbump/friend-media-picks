@@ -6,21 +6,20 @@
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "typecheck": "tsc --noEmit --project tsconfig.json",
-    "db:generate": "dotenvx run -f ../../.env -f .env -- drizzle-kit generate --config ./config/drizzle.config.ts",
-    "db:migrate": "dotenvx run -f ../../.env -f .env -- drizzle-kit migrate --config ./config/drizzle.config.ts",
-    "db:studio": "dotenvx run -f ../../.env -f .env -- drizzle-kit studio --config ./config/drizzle.config.ts"
+    "db:generate": "dotenv -e ../../.env -e .env -- drizzle-kit generate --config ./config/drizzle.config.ts",
+    "db:migrate": "dotenv -e ../../.env -e .env -- drizzle-kit migrate --config ./config/drizzle.config.ts",
+    "db:studio": "dotenv -e ../../.env -e .env -- drizzle-kit studio --config ./config/drizzle.config.ts"
   },
   "dependencies": {
     "@effect/platform": "^0.96.1",
     "@effect/platform-node": "^0.106.0",
+    "dotenv": "^16.6.1",
     "effect": "^3.21.2",
-    "kysely": "^0.28.16",
-    "pg": "^8.20.0",
-    "zod": "^4.3.6"
+    "pg": "^8.20.0"
   },
   "devDependencies": {
-    "@dotenvx/dotenvx": "^1.64.0",
     "@types/pg": "^8.20.0",
+    "dotenv-cli": "^8.0.0",
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2"
   }

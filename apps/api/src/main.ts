@@ -6,7 +6,8 @@ import { createServer } from "node:http";
 import { SerieRepositoryLive } from "./infrastructure/serie.repository.js";
 import { withHttpErrors } from "./interface/errors/http-error-handler.js";
 import { createSerieHttpHandler } from "./interface/serie.controller.js";
-import { DbClientLive } from "./infrastructure/database/db.client.port.js";
+import { DbClientLive } from "./infrastructure/database/db.service.js";
+import { EnvConfigLive } from "./infrastructure/config/env.service.js";
 
 const port = Number(process.env.API_PORT ?? 3000);
 
@@ -21,7 +22,9 @@ const createSerieRoute = withHttpErrors(
   }),
 );
 
-const AppLive = Layer.provide(SerieRepositoryLive, DbClientLive);
+const DbLive = Layer.provide(DbClientLive, EnvConfigLive);
+const SerieLive = Layer.provide(SerieRepositoryLive, DbLive);
+const AppLive = SerieLive;
 
 const app = HttpRouter.empty.pipe(
   HttpRouter.get("/health", HttpServerResponse.json({ status: "ok" })),

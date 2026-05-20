@@ -1,14 +1,9 @@
-import type { Kyselify } from "drizzle-orm/kysely";
-import { Kysely, PostgresDialect } from "kysely";
+import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-
-import { env } from "../../../config/env.config.js";
-import type { series } from "../serie.schema.js";
 import { Data, Effect } from "effect";
+import type { DbSchema } from "./db.schema.js";
 
-export type Database = {
-  series: Kyselify<typeof series>;
-};
+export type Database = ReturnType<typeof drizzle<DbSchema>>;
 
 const CONNECTION_STRING = "CONNECTION_STRING";
 
@@ -29,15 +24,13 @@ const validateConnectionString = (
         }),
       );
 
-export const makeDb = (connectionString = env.databaseUrl) =>
+export const createDrizzleDbClient = (connectionString: string) =>
   Effect.gen(function* () {
     const validConnectionString = yield* validateConnectionString(connectionString);
 
-    return new Kysely<Database>({
-      dialect: new PostgresDialect({
-        pool: new Pool({
-          connectionString: validConnectionString,
-        }),
-      }),
+    const pool = new Pool({
+      connectionString: validConnectionString,
     });
+
+    return drizzle<DbSchema>(pool);
   });

@@ -1,28 +1,19 @@
 import { Context, Data, Effect, Layer } from "effect";
 import {
+  type InferInsertModel,
+  type InferSelectModel,
+} from "drizzle-orm";
+import {
   unwrapSeasonCount,
   unwrapTitleSerie,
   type Serie,
   type ValidatedNewSerie,
 } from "../domain/serie.js";
-import type { Database } from "./database/kysely.js";
-import type { Insertable, Selectable } from "kysely";
-import { DbClient } from "./database/db.client.port.js";
-import { PgSqlState } from "./database/pg-sqlstate.js";
-
-export const SerieRepositoryErrorReason = {
-  SAVE_FAILED: "SAVE_FAILED",
-  CONNECTION_UNAVAILABLE: "CONNECTION_UNAVAILABLE",
-  SCHEMA_MISSING: "SCHEMA_MISSING",
-  UNKNOWN: "UNKNOWN",
-} as const;
-
-export type SerieRepositoryErrorReason =
-  (typeof SerieRepositoryErrorReason)[keyof typeof SerieRepositoryErrorReason];
+import { DbClient } from "./database/db.service.js";
+import { series } from "./serie.schema.js";
 
 export class SerieRepositoryError extends Data.TaggedError("SerieRepositoryError")<{
   message: string;
-  reason: SerieRepositoryErrorReason;
 }> {}
 
 export class SerieRepository extends Context.Tag("SerieRepository")<
@@ -32,15 +23,15 @@ export class SerieRepository extends Context.Tag("SerieRepository")<
   }
 >() {}
 
-type SerieRow = Selectable<Database["series"]>;
-type SerieInsert = Insertable<Database["series"]>;
+type SerieRow = InferSelectModel<typeof series>;
+type SerieInsert = InferInsertModel<typeof series>;
 
 const mapNewSerieToInsert = (newSerie: ValidatedNewSerie): SerieInsert => ({
   title: unwrapTitleSerie(newSerie.title),
   description: newSerie.description,
   seasons: unwrapSeasonCount(newSerie.seasons),
   producer: newSerie.producer,
-  release_at: newSerie.releaseAt,
+  releaseAt: newSerie.releaseAt,
 });
 
 const mapRowToSerie = (row: SerieRow): Serie => ({
@@ -49,35 +40,8 @@ const mapRowToSerie = (row: SerieRow): Serie => ({
   description: row.description,
   seasons: row.seasons,
   producer: row.producer,
-  releaseAt: row.release_at,
+  releaseAt: row.releaseAt,
 });
-
-type PgLikeError = {
-  code?: string;
-  message?: string;
-};
-
-const mapDatabaseErrorReason = (error: PgLikeError): SerieRepositoryErrorReason => {
-  if (error.code === PgSqlState.UNIQUE_VIOLATION) {
-    return SerieRepositoryErrorReason.SAVE_FAILED;
-  }
-
-  if (error.code === PgSqlState.UNDEFINED_TABLE) {
-    return SerieRepositoryErrorReason.SCHEMA_MISSING;
-  }
-
-  const message = error.message ?? "";
-
-  if (/connect|connection|econn|enotfound|timeout|refused/i.test(message)) {
-    return SerieRepositoryErrorReason.CONNECTION_UNAVAILABLE;
-  }
-
-  if (/insert|constraint|duplicate|violat/i.test(message)) {
-    return SerieRepositoryErrorReason.SAVE_FAILED;
-  }
-
-  return SerieRepositoryErrorReason.UNKNOWN;
-};
 
 export const SerieRepositoryLive = Layer.effect(
   SerieRepository,
@@ -89,20 +53,22 @@ export const SerieRepositoryLive = Layer.effect(
         Effect.tryPromise({
           try: async () => {
             const row = await db
-              .insertInto("series")
+              .insert(series)
               .values(mapNewSerieToInsert(newSerie))
-              .returningAll()
-              .executeTakeFirstOrThrow();
+              .returning()
+              .then((rows) => rows[0]);
+
+            if (!row) {
+              throw new Error("Insert did not return a row");
+            }
 
             return mapRowToSerie(row);
           },
           catch: (e) => {
             const message = e instanceof Error ? e.message : String(e);
-            const pgLikeError = e && typeof e === "object" ? (e as PgLikeError) : { message };
 
             return new SerieRepositoryError({
               message,
-              reason: mapDatabaseErrorReason(pgLikeError),
             });
           },
         }),

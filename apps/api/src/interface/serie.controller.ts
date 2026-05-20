@@ -1,28 +1,25 @@
 import { Data, Effect } from "effect";
+import * as Schema from "effect/Schema";
 
 import { createSerieUseCase } from "../application/create-serie.use-case.js";
 import type { Serie } from "../domain/serie.js";
-import z from "zod";
 
-const createSerieSchema = z.object({
-  title: z.string(),
-  description: z.string(),
-  seasons: z.number(),
-  producer: z.string(),
-  releaseAt: z.coerce.date(),
+const createSerieSchema = Schema.Struct({
+  title: Schema.String,
+  description: Schema.String,
+  seasons: Schema.Number,
+  producer: Schema.String,
+  releaseAt: Schema.DateFromString,
 });
 
 export class RequestValidationError extends Data.TaggedError("ValidationError")<{
-  issues: z.ZodError["issues"];
+  details: string;
 }> {}
 
 const parseCreateSerieInput = (input: unknown) =>
-  Effect.suspend(() => {
-    const parsed = createSerieSchema.safeParse(input);
-    return parsed.success
-      ? Effect.succeed(parsed.data)
-      : Effect.fail(new RequestValidationError({ issues: parsed.error.issues }));
-  });
+  Schema.decodeUnknown(createSerieSchema)(input).pipe(
+    Effect.mapError((error) => new RequestValidationError({ details: error.message })),
+  );
 
 const mapToClientShape = (serie: Serie): Serie => serie;
 
