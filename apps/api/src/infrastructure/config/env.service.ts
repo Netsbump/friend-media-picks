@@ -9,5 +9,8 @@ export class EnvConfig extends Context.Tag("EnvConfig")<EnvConfig, EnvConfigShap
 
 export const EnvConfigLive: Layer.Layer<EnvConfig, EnvError> = Layer.effect(
   EnvConfig,
-  loadEnv.pipe(Effect.map((env) => ({ env }))),
+  loadEnv.pipe(
+    Effect.tap(() => Effect.logInfo("[BOOT] Env config loaded")),
+    Effect.map((env) => ({ env })),
+  ),
 );

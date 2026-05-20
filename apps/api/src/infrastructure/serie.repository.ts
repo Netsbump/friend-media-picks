@@ -44,6 +44,7 @@ export const SerieRepositoryLive = Layer.effect(
   SerieRepository,
   Effect.gen(function* () {
     const { db } = yield* DbClient;
+    yield* Effect.logInfo("[BOOT] SerieRepository wired");
 
     return {
       save: (newSerie: ValidatedNewSerie) =>

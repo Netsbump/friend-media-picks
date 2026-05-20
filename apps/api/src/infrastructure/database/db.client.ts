@@ -32,5 +32,7 @@ export const createDrizzleDbClient = (connectionString: string) =>
       connectionString: validConnectionString,
     });
 
+    yield* Effect.logInfo("[BOOT] Postgres pool created");
+
     return drizzle<DbSchema>(pool);
   });

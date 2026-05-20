@@ -26,6 +26,12 @@ const DbLive = Layer.provide(DbClientLive, EnvConfigLive);
 const SerieLive = Layer.provide(SerieRepositoryLive, DbLive);
 const AppLive = SerieLive;
 
+const bootLogs = Effect.gen(function* () {
+  yield* Effect.logInfo(`[BOOT] Starting API on port ${port}`);
+  yield* Effect.logInfo("[BOOT] App layer graph configured");
+  yield* Effect.logInfo("[BOOT] DB and repository layers initialize lazily on first use");
+});
+
 const app = HttpRouter.empty.pipe(
   HttpRouter.get("/health", HttpServerResponse.json({ status: "ok" })),
   HttpRouter.get("/", HttpServerResponse.text("Friend Media Picks API")),
@@ -37,4 +43,4 @@ const serverLayer = HttpServer.serve(app).pipe(
   Layer.provide(NodeHttpServer.layer(() => createServer(), { port })),
 );
 
-NodeRuntime.runMain(Layer.launch(serverLayer));
+NodeRuntime.runMain(bootLogs.pipe(Effect.andThen(Layer.launch(serverLayer))));
