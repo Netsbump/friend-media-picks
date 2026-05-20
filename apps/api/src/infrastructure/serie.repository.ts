@@ -1,8 +1,5 @@
 import { Context, Data, Effect, Layer } from "effect";
-import {
-  type InferInsertModel,
-  type InferSelectModel,
-} from "drizzle-orm";
+import { type InferInsertModel, type InferSelectModel } from "drizzle-orm";
 import {
   unwrapSeasonCount,
   unwrapTitleSerie,
