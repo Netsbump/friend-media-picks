@@ -20,10 +20,7 @@
 
 ## Erreurs et observabilite
 
-- [ ] Completer le mapping SQLSTATE Postgres (au-dela de `23505`, `42P01`)
-- [ ] Standardiser les `ApiErrorCode` (pas de string libre)
 - [ ] Ameliorer logs dev (eventuellement structurer en JSON)
-- [ ] Ajouter des logs Effect propres au demarrage de l'API (port, env, dependances critiques)
 
 ## Base de donnees
 

@@ -1,4 +1,4 @@
-import { Context, Data, Effect, Layer } from "effect";
+import { Effect, Layer } from "effect";
 import { type InferInsertModel, type InferSelectModel } from "drizzle-orm";
 import {
   unwrapSeasonCount,
@@ -8,17 +8,7 @@ import {
 } from "../domain/serie.js";
 import { DbClient } from "./database/db.service.js";
 import { series } from "./serie.schema.js";
-
-export class SerieRepositoryError extends Data.TaggedError("SerieRepositoryError")<{
-  message: string;
-}> {}
-
-export class SerieRepository extends Context.Tag("SerieRepository")<
-  SerieRepository,
-  {
-    save: (newSerie: ValidatedNewSerie) => Effect.Effect<Serie, SerieRepositoryError>;
-  }
->() {}
+import { SerieRepository, SerieRepositoryError } from "../application/serie.repository.js";
 
 type SerieRow = InferSelectModel<typeof series>;
 type SerieInsert = InferInsertModel<typeof series>;

@@ -1,14 +1,13 @@
 # Friend Media Picks
 
-Backend learning project built with Effect TS, using a pragmatic Functional Core / Imperative Shell approach inspired by Clean Architecture, while keeping the codebase lightweight and avoiding unnecessary OOP boilerplate.
+Backend learning project built with Effect TS, exploring a functional programming approach with feature-based organization and clear separation of concerns.
 
 ## Tech Stack
 
 - TypeScript
 - Effect TS (`effect`, `@effect/platform`, `@effect/platform-node`)
 - PostgreSQL
-- Kysely (query builder)
-- Drizzle Kit (schema + migrations)
+- Drizzle
 - pnpm workspace
 
 ## Prerequisites

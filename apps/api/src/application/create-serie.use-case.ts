@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 
 import { validateNewSerie, type NewSerieInput } from "../domain/serie.js";
-import { SerieRepository } from "../infrastructure/serie.repository.js";
+import { SerieRepository } from "./serie.repository.js";
 
 export const createSerieUseCase = (newSerie: NewSerieInput) =>
   Effect.gen(function* () {

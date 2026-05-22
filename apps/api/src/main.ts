@@ -3,11 +3,11 @@ import { NodeHttpServer, NodeRuntime } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
 import { createServer } from "node:http";
 
-import { SerieRepositoryLive } from "./infrastructure/serie.repository.js";
-import { withHttpErrors } from "./interface/errors/http-error-handler.js";
-import { createSerieHttpHandler } from "./interface/serie.controller.js";
+import { SerieRepositoryLive } from "./infrastructure/serie.repository.drizzle.js";
+import { withHttpErrors } from "./http/errors/http-error-handler.js";
 import { DbClientLive } from "./infrastructure/database/db.service.js";
 import { EnvConfigLive } from "./infrastructure/config/env.service.js";
+import { createSerieHandler } from "./http/create-serie.handler.js";
 
 const port = Number(process.env.API_PORT ?? 3000);
 
@@ -16,7 +16,7 @@ const createSerieRoute = withHttpErrors(
     const request = yield* HttpServerRequest.HttpServerRequest;
     const body = yield* request.json;
 
-    const serie = yield* createSerieHttpHandler(body);
+    const serie = yield* createSerieHandler(body);
 
     return yield* HttpServerResponse.json(serie, { status: 201 });
   }),

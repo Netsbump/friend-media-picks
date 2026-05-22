@@ -23,7 +23,7 @@ const parseCreateSerieInput = (input: unknown) =>
 
 const mapToClientShape = (serie: Serie): Serie => serie;
 
-export const createSerieHttpHandler = (input: unknown) =>
+export const createSerieHandler = (input: unknown) =>
   Effect.gen(function* () {
     const parsedSerie = yield* parseCreateSerieInput(input);
 
