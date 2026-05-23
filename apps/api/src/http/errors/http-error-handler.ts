@@ -4,7 +4,7 @@ import { Effect } from "effect";
 import type { DomainError } from "../../domain/serie.js";
 import { toApiError } from "./api-error.js";
 import type { SerieRepositoryError } from "../../application/serie.repository.js";
-import type { RequestValidationError } from "../create-serie.handler.js";
+import type { RequestValidationError } from "../serie.handler.js";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 
@@ -23,7 +23,15 @@ const toResponse = (error: unknown) => {
 
 const logError = (error: unknown) =>
   // Logging must not fail the request pipeline.
-  Effect.logError(`[HTTP_ERROR] ${JSON.stringify(error, null, 2)}`).pipe(Effect.orDie);
+  Effect.gen(function* () {
+    const apiError = toApiError(error, { includeInternalDetails: isDevelopment });
+    yield* Effect.logError(
+      `[HTTP_ERROR] status=${apiError.status} code=${apiError.code} message=${apiError.message}`,
+    );
+    if (isDevelopment && apiError.details) {
+      yield* Effect.logError(`[HTTP_ERROR_DETAILS] ${String(apiError.details)}`);
+    }
+  }).pipe(Effect.orDie);
 
 const logAndRespond = (error: unknown) => logError(error).pipe(Effect.andThen(toResponse(error)));
 

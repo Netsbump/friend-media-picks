@@ -12,8 +12,5 @@ export const createSerieUseCase = (newSerie: NewSerieInput) =>
     }
 
     const serieRepository = yield* SerieRepository;
-
-    const persistedSerie = yield* serieRepository.save(validated.value);
-
-    return persistedSerie;
+    return yield* serieRepository.save(validated.value);
   });
