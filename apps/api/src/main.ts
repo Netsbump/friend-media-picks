@@ -8,6 +8,7 @@ import { withHttpErrors } from "./http/errors/http-error-handler.js";
 import { DbClientLive } from "./infrastructure/database/db.service.js";
 import { EnvConfigLive } from "./infrastructure/config/env.service.js";
 import { createSerieHandler, getSerieHandler } from "./http/serie.handler.js";
+import { SerieServiceLive } from "./application/serie.service.live.js";
 
 const port = Number(process.env.API_PORT ?? 3000);
 
@@ -53,7 +54,8 @@ const getSerieRoute = withHttpErrors(
 
 const DbLive = Layer.provide(DbClientLive, EnvConfigLive);
 const SerieLive = Layer.provide(SerieRepositoryLive, DbLive);
-const AppLive = SerieLive;
+const SerieServiceAppLive = Layer.provide(SerieServiceLive, SerieLive);
+const AppLive = SerieServiceAppLive;
 
 const bootLogs = Effect.gen(function* () {
   yield* Effect.logInfo(`[BOOT] Starting API on port ${port}`);

@@ -1,6 +1,5 @@
 import { Effect, Layer } from "effect";
 import { describe, expect, it } from "vitest";
-
 import { createSerieUseCase } from "./create-serie.use-case.js";
 import { SerieRepository } from "./serie.repository.js";
 

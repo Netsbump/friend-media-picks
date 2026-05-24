@@ -7,6 +7,7 @@ import {
   SerieRepositoryErrorCode,
   SerieRepositoryOperation,
 } from "../application/serie.repository.js";
+import { SerieServiceLive } from "../application/serie.service.live.js";
 import { createSerieHandler, getSerieHandler } from "./serie.handler.js";
 
 const releaseAt = new Date("2024-01-01T00:00:00.000Z");
@@ -32,6 +33,8 @@ const repoLayer = Layer.succeed(SerieRepository, {
     ),
 });
 
+const appLayer = Layer.provide(SerieServiceLive, repoLayer);
+
 describe("serie handlers", () => {
   it("createSerieHandler maps schema validation errors", async () => {
     const program = createSerieHandler({
@@ -40,7 +43,7 @@ describe("serie handlers", () => {
       seasons: "invalid",
       producer: "Netflix",
       releaseAt: "2024-01-01T00:00:00.000Z",
-    }).pipe(Effect.provide(repoLayer));
+    }).pipe(Effect.provide(appLayer));
 
     const exit = await Effect.runPromiseExit(program);
 
@@ -48,7 +51,7 @@ describe("serie handlers", () => {
   });
 
   it("getSerieHandler returns serie with repository layer", async () => {
-    const program = getSerieHandler("serie-1").pipe(Effect.provide(repoLayer));
+    const program = getSerieHandler("serie-1").pipe(Effect.provide(appLayer));
 
     const result = await Effect.runPromise(program);
 
