@@ -502,3 +502,14 @@ public static async Task<Serie> CreateSerieUseCase(ISerieRepository repo, NewSer
 
 Idee: C# utilise surtout `Task`/`async` pour l'asynchrone; on modele souvent les erreurs metier via types
 `Result` maison ou bibliotheques dediees.
+
+## 11) Memo rapide: OOP -> FP en TypeScript
+
+- En OOP, on cree souvent une instance avec `new` et le constructeur protege les invariants.
+- En FP/data-first, on manipule des objets litteraux, et les invariants sont proteges par des fonctions de creation/validation.
+- Un objet litteral n'est pas "moins serieux" qu'une classe: il devient fiable si toute creation passe par une porte d'entree metier (`createX`, `validateX`).
+- Sans cette discipline, TypeScript peut etre contourne (`as`, `Partial`, champs optionnels), donc il faut centraliser la creation.
+- `Brand<T, B>` sert a distinguer des valeurs de meme base (`string`, `number`) mais de sens metier different.
+- Les `as` sont acceptables dans les smart constructors, apres validation runtime; a eviter ailleurs.
+- Dans ce projet: `NewSerieInput` (brut) -> `validateNewSerie` -> `ValidatedNewSerie` (sur) -> repository -> `Serie`.
+- On pense "valeur valide" plutot que "instance de classe": le but est la surete metier, pas le mot-cle `new`.

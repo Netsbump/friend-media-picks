@@ -2,7 +2,7 @@ import { Effect, Layer, Option } from "effect";
 import { eq, type InferInsertModel, type InferSelectModel } from "drizzle-orm";
 import {
   unwrapSeasonCount,
-  unwrapTitleSerie,
+  unwrapSerieTitle,
   type Serie,
   type ValidatedNewSerie,
 } from "../domain/serie.js";
@@ -48,7 +48,7 @@ const firstOrRepoError = <A>(
   );
 
 const mapNewSerieToInsert = (newSerie: ValidatedNewSerie): SerieInsert => ({
-  title: unwrapTitleSerie(newSerie.title),
+  title: unwrapSerieTitle(newSerie.title),
   description: newSerie.description,
   seasons: unwrapSeasonCount(newSerie.seasons),
   producer: newSerie.producer,
