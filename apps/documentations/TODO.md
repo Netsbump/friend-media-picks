@@ -2,32 +2,34 @@
 
 ## Features API
 
-- [ ] Implementer `GET /series` (list all)
-- [ ] Implementer `GET /series/:id` (get by id)
+- [ ] Renommer le modele `serie` en `tvshow` dans tout le projet
+- [ ] Renommer les routes `/series` en `/tvshows`
+- [ ] Renommer les fichiers, services, repositories, handlers et tests lies a `serie` vers `tvshow`
+- [ ] Implementer `GET /tvshows` (list all)
+- [ ] Implementer `GET /tvshows/:id` (get by id)
 - [ ] Gérer les cas `not found` avec une erreur metier/API claire
-- [ ] Ajouter pagination simple sur `GET /series`
+- [ ] Ajouter pagination simple sur `GET /tvshows`
 
 ## Tests (propre en Effect TS)
 
-- [ ] Choisir la strategie de tests:
-  - unitaires sur domaine pur
-  - integration sur use cases/repository
-  - tests HTTP endpoint
-- [ ] Ajouter tests domaine (`validateNewSerie`)
-- [ ] Ajouter tests mapping erreurs (`toApiError`, `withHttpErrors`)
-- [ ] Ajouter tests repository avec DB de test
-- [ ] Documenter la facon de mocker/provide des services (`Layer` de test)
+- [ ] Comprendre les tests en Effect et choisir ce qui est pertinant de tester :
+  - unitaires sur domaine pur ?
+  - integration sur use cases/repository ?
+  - tests HTTP endpoint ?
+  - tests db ?
+  - tests du mapping d'error ?
+  - documentation de comment mocker ?
 
 ## Erreurs et observabilite
 
-- [ ] Ameliorer logs dev (eventuellement structurer en JSON)
+- [ ] Ameliorer logs dev (eventuellement structurer en JSON) et comment on fait en Effect ? (bonnes pratiques)
+- [ ] Utiliser la lib que j'ai mis de coté pour avoir les metrics ?
 
 ## Base de donnees
 
 - [ ] Ajouter commande "reset dev DB" documentee
-- [ ] Ajouter seed minimal de dev (series de demo)
+- [ ] Ajouter seed minimal de dev (tv shows de demo)
 
 ## Documentation
 
 - [ ] Ajouter un chapitre sur tests Effect (patterns `provide`, `Layer`, `catchTags`)
-- [ ] Ajouter une section sur la visualisation de l'architecture en Markdown
