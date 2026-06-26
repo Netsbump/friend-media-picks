@@ -7,7 +7,7 @@ export type Genre = {
 };
 
 export type GenreName = Brand<string, "GenreName">;
-export const unwrapSerieName = (name: GenreName): string => name;
+export const unwrapGenreName = (name: GenreName): string => name;
 
 export const createGenreName = (raw: string): Result<GenreName> => {
   const value = raw.trim();

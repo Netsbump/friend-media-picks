@@ -7,7 +7,7 @@ import {
   type ValidatedNewSerie,
 } from "../domain/serie.js";
 import { DbClient } from "./database/db.service.js";
-import { series } from "./serie.schema.js";
+import { series } from "./schemas/serie.schema.js";
 import {
   RepositoryEntity,
   RepositoryError,
@@ -48,7 +48,7 @@ const firstOrRepoError = <A>(
     }),
   );
 
-const mapNewSerieToInsert = (newSerie: ValidatedNewSerie): SerieInsert => ({
+const toSerieInsert = (newSerie: ValidatedNewSerie): SerieInsert => ({
   title: unwrapSerieTitle(newSerie.title),
   description: newSerie.description,
   seasons: unwrapSeasonCount(newSerie.seasons),
@@ -56,7 +56,7 @@ const mapNewSerieToInsert = (newSerie: ValidatedNewSerie): SerieInsert => ({
   releaseAt: newSerie.releaseAt,
 });
 
-const mapRowToSerie = (row: SerieRow): Serie => ({
+const toSerieDomain = (row: SerieRow): Serie => ({
   id: row.id,
   title: row.title,
   description: row.description,
@@ -90,7 +90,7 @@ export const SerieRepositoryLive = Layer.effect(
       Effect.logInfo("[REPO] save serie start").pipe(
         Effect.andThen(
           Effect.tryPromise({
-            try: () => db.insert(series).values(mapNewSerieToInsert(newSerie)).returning(),
+            try: () => db.insert(series).values(toSerieInsert(newSerie)).returning(),
             catch: toRepoError(RepositoryOperation.SAVE),
           }),
         ),
@@ -111,7 +111,7 @@ export const SerieRepositoryLive = Layer.effect(
             }),
           ),
           Effect.tap(() => Effect.logInfo(`[REPO] find serie success id=${serieId}`)),
-          Effect.map(mapRowToSerie),
+          Effect.map(toSerieDomain),
         ),
       save: (newSerie: ValidatedNewSerie) =>
         insertRow(newSerie).pipe(
@@ -125,7 +125,7 @@ export const SerieRepositoryLive = Layer.effect(
             }),
           ),
           Effect.tap(() => Effect.logInfo("[REPO] save serie success")),
-          Effect.map(mapRowToSerie),
+          Effect.map(toSerieDomain),
         ),
     };
   }),

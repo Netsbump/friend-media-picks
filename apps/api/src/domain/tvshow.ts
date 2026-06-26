@@ -33,7 +33,7 @@ export type TvShow = {
 };
 
 export type TvShowName = Brand<string, "TvShowName">;
-export const unwrapSerieName = (name: TvShowName): string => name;
+export const unwrapTvShowName = (name: TvShowName): string => name;
 
 const createTvShowName = (raw: string): Result<TvShowName> => {
   const value = raw.trim();

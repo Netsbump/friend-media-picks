@@ -4,9 +4,11 @@ import { Effect, Layer } from "effect";
 import { createServer } from "node:http";
 
 import { SerieRepositoryLive } from "./infrastructure/serie.repository.drizzle.js";
+import { TvShowRepositoryLive } from "./infrastructure/tvshow.repository.drizzle.js";
 import { DbClientLive } from "./infrastructure/database/db.service.js";
 import { EnvConfigLive } from "./infrastructure/config/env.service.js";
 import { SerieServiceLive } from "./application/serie.service.live.js";
+import { TvShowServiceLive } from "./application/tvshow.service.live.js";
 import { app } from "./http/app.js";
 
 const port = Number(process.env.API_PORT ?? 3000);
@@ -14,7 +16,9 @@ const port = Number(process.env.API_PORT ?? 3000);
 const DbLive = Layer.provide(DbClientLive, EnvConfigLive);
 const SerieLive = Layer.provide(SerieRepositoryLive, DbLive);
 const SerieServiceAppLive = Layer.provide(SerieServiceLive, SerieLive);
-const AppLive = SerieServiceAppLive;
+const TvShowLive = Layer.provide(TvShowRepositoryLive, DbLive);
+const TvShowServiceAppLive = Layer.provide(TvShowServiceLive, TvShowLive);
+const AppLive = Layer.mergeAll(SerieServiceAppLive, TvShowServiceAppLive);
 
 const bootLogs = Effect.gen(function* () {
   yield* Effect.logInfo(`[BOOT] Starting API on port ${port}`);
