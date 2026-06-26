@@ -1,4 +1,5 @@
-import { Context, Effect } from "effect";
+import type { Effect } from "effect";
+import { Context } from "effect";
 import type { NewTvShowInput, TvShow } from "../domain/tvshow.js";
 import type { DomainError } from "../domain/shared/type.js";
 import type { RepositoryError } from "./repository.error.js";

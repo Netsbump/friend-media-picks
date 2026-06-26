@@ -50,14 +50,17 @@ export const makeTvShowQueries = (db: Database) => {
   ) =>
     input.length === 0
       ? Promise.resolve([])
-      : db.insert(persons).values(input.map(toPersonInsert)).returning();
+      : db
+          .insert(persons)
+          .values(input.map((person) => toPersonInsert(person)))
+          .returning();
 
   const insertGenres = (input: ReadonlyArray<ValidatedGenre>) =>
     input.length === 0
       ? Promise.resolve([])
       : db
           .insert(genres)
-          .values(input.map(toGenreInsert))
+          .values(input.map((genre) => toGenreInsert(genre)))
           .onConflictDoUpdate({
             target: genres.name,
             set: { description: sql`excluded.description` },
@@ -70,7 +73,7 @@ export const makeTvShowQueries = (db: Database) => {
       : db
           .insert(tvShowDirectors)
           .values(rows.map((row) => ({ tvShowId, personId: row.id })))
-          .then(() => undefined);
+          .then(() => {});
 
   const insertTvShowWriters = (tvShowId: string, rows: ReadonlyArray<PersonRow>) =>
     rows.length === 0
@@ -78,7 +81,7 @@ export const makeTvShowQueries = (db: Database) => {
       : db
           .insert(tvShowWriters)
           .values(rows.map((row) => ({ tvShowId, personId: row.id })))
-          .then(() => undefined);
+          .then(() => {});
 
   const insertTvShowStars = (tvShowId: string, rows: ReadonlyArray<PersonRow>) =>
     rows.length === 0
@@ -86,7 +89,7 @@ export const makeTvShowQueries = (db: Database) => {
       : db
           .insert(tvShowStars)
           .values(rows.map((row) => ({ tvShowId, personId: row.id })))
-          .then(() => undefined);
+          .then(() => {});
 
   const insertTvShowGenres = (tvShowId: string, rows: ReadonlyArray<GenreRow>) =>
     rows.length === 0
@@ -94,10 +97,9 @@ export const makeTvShowQueries = (db: Database) => {
       : db
           .insert(tvShowGenres)
           .values(rows.map((row) => ({ tvShowId, genreId: row.id })))
-          .then(() => undefined);
+          .then(() => {});
 
-  const insertTvShow = (row: TvShowInsert) =>
-    db.insert(tvShows).values(row).returning();
+  const insertTvShow = (row: TvShowInsert) => db.insert(tvShows).values(row).returning();
 
   const selectTvShowById = (tvShowId: string) =>
     db.select().from(tvShows).where(eq(tvShows.id, tvShowId));

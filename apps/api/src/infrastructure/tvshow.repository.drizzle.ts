@@ -65,10 +65,10 @@ export const TvShowRepositoryLive = Layer.effect(
       ]);
 
       return toTvShowDomain(row, {
-        directors: directorRows.map(toDirectorDomain),
-        writers: writerRows.map(toWriterDomain),
-        stars: starRows.map(toStarDomain),
-        genres: genreRows.map(toGenreDomain),
+        directors: directorRows.map((d) => toDirectorDomain(d)),
+        writers: writerRows.map((w) => toWriterDomain(w)),
+        stars: starRows.map((s) => toStarDomain(s)),
+        genres: genreRows.map((g) => toGenreDomain(g)),
       });
     };
 
@@ -149,7 +149,7 @@ export const TvShowRepositoryLive = Layer.effect(
         findRows().pipe(
           Effect.flatMap((rows) =>
             Effect.tryPromise({
-              try: () => Promise.all(rows.map(hydrateTvShow)),
+              try: () => Promise.all(rows.map((row) => hydrateTvShow(row))),
               catch: toRepoError(RepositoryOperation.FIND_ALL),
             }),
           ),
