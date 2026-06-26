@@ -5,7 +5,7 @@ import { createServer } from "node:http";
 
 import { SerieRepositoryLive } from "./infrastructure/serie.repository.drizzle.js";
 import { TvShowRepositoryLive } from "./infrastructure/tvshow.repository.drizzle.js";
-import { DbClientLive } from "./infrastructure/database/db.service.js";
+import { DbClientLive } from "./database/db.service.js";
 import { EnvConfigLive } from "./infrastructure/config/env.service.js";
 import { SerieServiceLive } from "./application/serie.service.live.js";
 import { TvShowServiceLive } from "./application/tvshow.service.live.js";

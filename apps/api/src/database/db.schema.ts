@@ -1,13 +1,13 @@
-import type { genres } from "../schemas/genre.schema.js";
-import type { persons } from "../schemas/person.schema.js";
-import type { series } from "../schemas/serie.schema.js";
+import type { genres } from "../infrastructure/schemas/genre.schema.js";
+import type { persons } from "../infrastructure/schemas/person.schema.js";
+import type { series } from "../infrastructure/schemas/serie.schema.js";
 import type {
   tvShowDirectors,
   tvShowGenres,
   tvShows,
   tvShowStars,
   tvShowWriters,
-} from "../schemas/tvshow.schema.js";
+} from "../infrastructure/schemas/tvshow.schema.js";
 
 export type DbSchema = {
   genres: typeof genres;

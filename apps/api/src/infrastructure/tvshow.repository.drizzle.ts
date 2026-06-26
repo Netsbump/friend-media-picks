@@ -19,7 +19,7 @@ import {
   type ValidatedTvShow,
 } from "../domain/tvshow.js";
 import type { ValidatedNewWriter, Writer } from "../domain/writer.js";
-import { DbClient } from "./database/db.service.js";
+import { DbClient } from "../database/db.service.js";
 import { genres, type GenreInsert, type GenreRow } from "./schemas/genre.schema.js";
 import { persons, type PersonInsert, type PersonRow } from "./schemas/person.schema.js";
 import {

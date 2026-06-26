@@ -6,7 +6,7 @@ import {
   type Serie,
   type ValidatedNewSerie,
 } from "../domain/serie.js";
-import { DbClient } from "./database/db.service.js";
+import { DbClient } from "../database/db.service.js";
 import { series, type SerieInsert, type SerieRow } from "./schemas/serie.schema.js";
 import {
   RepositoryEntity,
