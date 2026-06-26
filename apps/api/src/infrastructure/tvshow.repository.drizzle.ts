@@ -1,14 +1,6 @@
 import { Effect, Layer, Option } from "effect";
-import {
-  RepositoryEntity,
-  RepositoryError,
-  RepositoryErrorCode,
-  RepositoryOperation,
-} from "../../application/repository.error.js";
-import { TvShowRepository } from "../../application/tvshow.repository.js";
-import { DbClient } from "../../database/db.service.js";
-import type { TvShow, ValidatedTvShow } from "../../domain/tvshow.js";
-import type { TvShowRow } from "../schemas/tvshow.schema.js";
+import type { TvShow, ValidatedTvShow } from "../domain/tvshow.js";
+import type { TvShowRow } from "./schemas/tvshow.schema.js";
 import {
   toDirectorDomain,
   toGenreDomain,
@@ -16,8 +8,16 @@ import {
   toTvShowDomain,
   toTvShowInsert,
   toWriterDomain,
-} from "../tvshow.mappers.js";
-import { makeTvShowQueries } from "../tvshow.queries.js";
+} from "./tvshow.mappers.js";
+import { makeTvShowQueries } from "./tvshow.queries.js";
+import {
+  RepositoryEntity,
+  RepositoryError,
+  RepositoryErrorCode,
+  RepositoryOperation,
+} from "../application/repository.error.js";
+import { TvShowRepository } from "../application/tvshow.repository.js";
+import { DbClient } from "../database/db.service.js";
 
 const toRepoError = (operation: RepositoryOperation, tvShowId?: string) => (e: unknown) =>
   new RepositoryError({
