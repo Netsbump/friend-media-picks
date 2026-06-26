@@ -53,7 +53,7 @@ export type NewSerieInput = {
   releaseAt: Date;
 };
 
-export type ValidatedNewSerie = {
+export type ValidatedSerie = {
   title: SerieTitle;
   description: string;
   seasons: SeasonCount;
@@ -61,7 +61,7 @@ export type ValidatedNewSerie = {
   releaseAt: Date;
 };
 
-export const validateNewSerie = (input: NewSerieInput): Result<ValidatedNewSerie> => {
+export const validateNewSerie = (input: NewSerieInput): Result<ValidatedSerie> => {
   const titleResult = createSerieTitle(input.title);
   if (!titleResult.success) return titleResult;
 

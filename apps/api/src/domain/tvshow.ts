@@ -2,19 +2,14 @@ import {
   validateNewDirectors,
   type Director,
   type NewDirectorInput,
-  type ValidatedNewDirector,
+  type ValidatedDirector,
 } from "./director.js";
-import {
-  validateNewGenres,
-  type Genre,
-  type NewGenreInput,
-  type ValidatedNewGenre,
-} from "./genre.js";
-import { validateNewStars, type NewStarInput, type Star, type ValidatedNewStar } from "./star.js";
+import { validateNewGenres, type Genre, type NewGenreInput, type ValidatedGenre } from "./genre.js";
+import { validateNewStars, type NewStarInput, type Star, type ValidatedStar } from "./star.js";
 import {
   validateNewWriters,
   type NewWriterInput,
-  type ValidatedNewWriter,
+  type ValidatedWriter,
   type Writer,
 } from "./writer.js";
 import { DomainErrorCode, domainError, type Brand, type Result } from "./shared/type.js";
@@ -105,10 +100,10 @@ export type ValidatedTvShow = {
   seasons: SeasonCount;
   episodes: EpisodeCount;
   releaseAt: Date;
-  directors: ReadonlyArray<ValidatedNewDirector>;
-  writers: ReadonlyArray<ValidatedNewWriter>;
-  stars: ReadonlyArray<ValidatedNewStar>;
-  genres: ReadonlyArray<ValidatedNewGenre>;
+  directors: ReadonlyArray<ValidatedDirector>;
+  writers: ReadonlyArray<ValidatedWriter>;
+  stars: ReadonlyArray<ValidatedStar>;
+  genres: ReadonlyArray<ValidatedGenre>;
 };
 
 export const validateNewTvShow = (input: NewTvShowInput): Result<ValidatedTvShow> => {

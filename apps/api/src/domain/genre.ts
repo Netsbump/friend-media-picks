@@ -29,12 +29,12 @@ export type NewGenreInput = {
   description: string;
 };
 
-export type ValidatedNewGenre = {
+export type ValidatedGenre = {
   name: GenreName;
   description: string;
 };
 
-export const validateNewGenre = (input: NewGenreInput): Result<ValidatedNewGenre> => {
+export const validateNewGenre = (input: NewGenreInput): Result<ValidatedGenre> => {
   const nameResult = createGenreName(input.name);
   if (!nameResult.success) return nameResult;
 
@@ -49,8 +49,8 @@ export const validateNewGenre = (input: NewGenreInput): Result<ValidatedNewGenre
 
 export const validateNewGenres = (
   inputs: ReadonlyArray<NewGenreInput>,
-): Result<ReadonlyArray<ValidatedNewGenre>> => {
-  const genres: ValidatedNewGenre[] = [];
+): Result<ReadonlyArray<ValidatedGenre>> => {
+  const genres: ValidatedGenre[] = [];
 
   for (const input of inputs) {
     const genreResult = validateNewGenre(input);

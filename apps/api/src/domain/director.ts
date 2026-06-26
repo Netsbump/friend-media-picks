@@ -12,12 +12,12 @@ export type NewDirectorInput = {
   lastName: string;
 };
 
-export type ValidatedNewDirector = {
+export type ValidatedDirector = {
   firstName: PersonName;
   lastName: PersonName;
 };
 
-export const validateNewDirector = (input: NewDirectorInput): Result<ValidatedNewDirector> => {
+export const validateNewDirector = (input: NewDirectorInput): Result<ValidatedDirector> => {
   const firstNameResult = createPersonName(input.firstName);
   if (!firstNameResult.success) return firstNameResult;
 
@@ -35,8 +35,8 @@ export const validateNewDirector = (input: NewDirectorInput): Result<ValidatedNe
 
 export const validateNewDirectors = (
   inputs: ReadonlyArray<NewDirectorInput>,
-): Result<ReadonlyArray<ValidatedNewDirector>> => {
-  const directors: ValidatedNewDirector[] = [];
+): Result<ReadonlyArray<ValidatedDirector>> => {
+  const directors: ValidatedDirector[] = [];
 
   for (const input of inputs) {
     const directorResult = validateNewDirector(input);

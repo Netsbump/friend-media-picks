@@ -12,12 +12,12 @@ export type NewStarInput = {
   lastName: string;
 };
 
-export type ValidatedNewStar = {
+export type ValidatedStar = {
   firstName: PersonName;
   lastName: PersonName;
 };
 
-export const validateNewStar = (input: NewStarInput): Result<ValidatedNewStar> => {
+export const validateNewStar = (input: NewStarInput): Result<ValidatedStar> => {
   const firstNameResult = createPersonName(input.firstName);
   if (!firstNameResult.success) return firstNameResult;
 
@@ -35,8 +35,8 @@ export const validateNewStar = (input: NewStarInput): Result<ValidatedNewStar> =
 
 export const validateNewStars = (
   inputs: ReadonlyArray<NewStarInput>,
-): Result<ReadonlyArray<ValidatedNewStar>> => {
-  const stars: ValidatedNewStar[] = [];
+): Result<ReadonlyArray<ValidatedStar>> => {
+  const stars: ValidatedStar[] = [];
 
   for (const input of inputs) {
     const starResult = validateNewStar(input);

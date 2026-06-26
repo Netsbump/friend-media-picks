@@ -12,12 +12,12 @@ export type NewWriterInput = {
   lastName: string;
 };
 
-export type ValidatedNewWriter = {
+export type ValidatedWriter = {
   firstName: PersonName;
   lastName: PersonName;
 };
 
-export const validateNewWriter = (input: NewWriterInput): Result<ValidatedNewWriter> => {
+export const validateNewWriter = (input: NewWriterInput): Result<ValidatedWriter> => {
   const firstNameResult = createPersonName(input.firstName);
   if (!firstNameResult.success) return firstNameResult;
 
@@ -35,8 +35,8 @@ export const validateNewWriter = (input: NewWriterInput): Result<ValidatedNewWri
 
 export const validateNewWriters = (
   inputs: ReadonlyArray<NewWriterInput>,
-): Result<ReadonlyArray<ValidatedNewWriter>> => {
-  const writers: ValidatedNewWriter[] = [];
+): Result<ReadonlyArray<ValidatedWriter>> => {
+  const writers: ValidatedWriter[] = [];
 
   for (const input of inputs) {
     const writerResult = validateNewWriter(input);

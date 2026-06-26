@@ -4,7 +4,7 @@ import {
   unwrapSeasonCount,
   unwrapSerieTitle,
   type Serie,
-  type ValidatedNewSerie,
+  type ValidatedSerie,
 } from "../domain/serie.js";
 import { DbClient } from "../database/db.service.js";
 import { series, type SerieInsert, type SerieRow } from "./schemas/serie.schema.js";
@@ -45,7 +45,7 @@ const firstOrRepoError = <A>(
     }),
   );
 
-const toSerieInsert = (newSerie: ValidatedNewSerie): SerieInsert => ({
+const toSerieInsert = (newSerie: ValidatedSerie): SerieInsert => ({
   title: unwrapSerieTitle(newSerie.title),
   description: newSerie.description,
   seasons: unwrapSeasonCount(newSerie.seasons),
@@ -83,7 +83,7 @@ export const SerieRepositoryLive = Layer.effect(
         ),
       );
 
-    const insertRow = (newSerie: ValidatedNewSerie) =>
+    const insertRow = (newSerie: ValidatedSerie) =>
       Effect.logInfo("[REPO] save serie start").pipe(
         Effect.andThen(
           Effect.tryPromise({
@@ -110,7 +110,7 @@ export const SerieRepositoryLive = Layer.effect(
           Effect.tap(() => Effect.logInfo(`[REPO] find serie success id=${serieId}`)),
           Effect.map(toSerieDomain),
         ),
-      save: (newSerie: ValidatedNewSerie) =>
+      save: (newSerie: ValidatedSerie) =>
         insertRow(newSerie).pipe(
           // Same composition pattern for save: empty insert result becomes a typed repository error.
           Effect.flatMap((rows) =>

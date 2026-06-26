@@ -7,9 +7,9 @@ import {
   RepositoryOperation,
 } from "../application/repository.error.js";
 import { TvShowRepository } from "../application/tvshow.repository.js";
-import type { Director, ValidatedNewDirector } from "../domain/director.js";
-import { unwrapGenreName, type Genre, type ValidatedNewGenre } from "../domain/genre.js";
-import type { Star, ValidatedNewStar } from "../domain/star.js";
+import type { Director, ValidatedDirector } from "../domain/director.js";
+import { unwrapGenreName, type Genre, type ValidatedGenre } from "../domain/genre.js";
+import type { Star, ValidatedStar } from "../domain/star.js";
 import { unwrapPersonName } from "../domain/shared/person-name.js";
 import {
   unwrapEpisodeCount,
@@ -18,7 +18,7 @@ import {
   type TvShow,
   type ValidatedTvShow,
 } from "../domain/tvshow.js";
-import type { ValidatedNewWriter, Writer } from "../domain/writer.js";
+import type { ValidatedWriter, Writer } from "../domain/writer.js";
 import { DbClient } from "../database/db.service.js";
 import { genres, type GenreInsert, type GenreRow } from "./schemas/genre.schema.js";
 import { persons, type PersonInsert, type PersonRow } from "./schemas/person.schema.js";
@@ -73,13 +73,13 @@ const toTvShowInsert = (tvShow: ValidatedTvShow): TvShowInsert => ({
 });
 
 const toPersonInsert = (
-  person: ValidatedNewDirector | ValidatedNewWriter | ValidatedNewStar,
+  person: ValidatedDirector | ValidatedWriter | ValidatedStar,
 ): PersonInsert => ({
   firstName: unwrapPersonName(person.firstName),
   lastName: unwrapPersonName(person.lastName),
 });
 
-const toGenreInsert = (genre: ValidatedNewGenre): GenreInsert => ({
+const toGenreInsert = (genre: ValidatedGenre): GenreInsert => ({
   name: unwrapGenreName(genre.name),
   description: genre.description,
 });
@@ -181,13 +181,13 @@ export const TvShowRepositoryLive = Layer.effect(
     };
 
     const insertPersons = (
-      input: ReadonlyArray<ValidatedNewDirector | ValidatedNewWriter | ValidatedNewStar>,
+      input: ReadonlyArray<ValidatedDirector | ValidatedWriter | ValidatedStar>,
     ) =>
       input.length === 0
         ? Promise.resolve([])
         : db.insert(persons).values(input.map(toPersonInsert)).returning();
 
-    const insertGenres = (input: ReadonlyArray<ValidatedNewGenre>) =>
+    const insertGenres = (input: ReadonlyArray<ValidatedGenre>) =>
       input.length === 0
         ? Promise.resolve([])
         : db
