@@ -1,5 +1,5 @@
 import { Effect, Layer, Option } from "effect";
-import { eq, sql, type InferInsertModel, type InferSelectModel } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import {
   RepositoryEntity,
   RepositoryError,
@@ -20,22 +20,18 @@ import {
 } from "../domain/tvshow.js";
 import type { ValidatedNewWriter, Writer } from "../domain/writer.js";
 import { DbClient } from "./database/db.service.js";
-import { genres } from "./schemas/genre.schema.js";
-import { persons } from "./schemas/person.schema.js";
+import { genres, type GenreInsert, type GenreRow } from "./schemas/genre.schema.js";
+import { persons, type PersonInsert, type PersonRow } from "./schemas/person.schema.js";
 import {
   tvShowDirectors,
   tvShowGenres,
   tvShows,
   tvShowStars,
   tvShowWriters,
+  type TvShowInsert,
+  type TvShowRow,
 } from "./schemas/tvshow.schema.js";
 
-type TvShowRow = InferSelectModel<typeof tvShows>;
-type TvShowInsert = InferInsertModel<typeof tvShows>;
-type PersonRow = InferSelectModel<typeof persons>;
-type PersonInsert = InferInsertModel<typeof persons>;
-type GenreRow = InferSelectModel<typeof genres>;
-type GenreInsert = InferInsertModel<typeof genres>;
 type PersonProjection = Pick<PersonRow, "id" | "firstName" | "lastName">;
 type GenreProjection = Pick<GenreRow, "id" | "name" | "description">;
 

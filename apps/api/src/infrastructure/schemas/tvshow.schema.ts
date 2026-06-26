@@ -1,3 +1,4 @@
+import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { integer, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { genres } from "./genre.schema.js";
 import { persons } from "./person.schema.js";
@@ -67,3 +68,6 @@ export const tvShowGenres = pgTable(
   },
   (table) => [primaryKey({ columns: [table.tvShowId, table.genreId] })],
 );
+
+export type TvShowRow = InferSelectModel<typeof tvShows>;
+export type TvShowInsert = InferInsertModel<typeof tvShows>;

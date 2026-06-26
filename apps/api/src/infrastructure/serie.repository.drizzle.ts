@@ -1,5 +1,5 @@
 import { Effect, Layer, Option } from "effect";
-import { eq, type InferInsertModel, type InferSelectModel } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import {
   unwrapSeasonCount,
   unwrapSerieTitle,
@@ -7,7 +7,7 @@ import {
   type ValidatedNewSerie,
 } from "../domain/serie.js";
 import { DbClient } from "./database/db.service.js";
-import { series } from "./schemas/serie.schema.js";
+import { series, type SerieInsert, type SerieRow } from "./schemas/serie.schema.js";
 import {
   RepositoryEntity,
   RepositoryError,
@@ -15,9 +15,6 @@ import {
   RepositoryOperation,
 } from "../application/repository.error.js";
 import { SerieRepository } from "../application/serie.repository.js";
-
-type SerieRow = InferSelectModel<typeof series>;
-type SerieInsert = InferInsertModel<typeof series>;
 
 const toRepoError = (operation: RepositoryOperation, serieId?: string) => (e: unknown) =>
   new RepositoryError({

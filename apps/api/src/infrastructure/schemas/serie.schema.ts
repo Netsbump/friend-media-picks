@@ -1,3 +1,4 @@
+import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { timestampFields, uuidField } from "./shared.schema.js";
 
@@ -13,3 +14,6 @@ export const series = pgTable("series", {
   }).notNull(),
   ...timestampFields,
 });
+
+export type SerieRow = InferSelectModel<typeof series>;
+export type SerieInsert = InferInsertModel<typeof series>;
