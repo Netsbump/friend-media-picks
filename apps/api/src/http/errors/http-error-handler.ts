@@ -4,7 +4,7 @@ import { Effect } from "effect";
 import type { DomainError } from "../../domain/shared/type.js";
 import type { RepositoryError } from "../../application/repository.error.js";
 import { toApiError } from "./api-error.js";
-import type { RequestValidationError } from "../serie.handler.js";
+import type { SchemaValidationError } from "./schema-validation-error.js";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 
@@ -35,11 +35,13 @@ const logError = (error: unknown) =>
 
 const logAndRespond = (error: unknown) => logError(error).pipe(Effect.andThen(toResponse(error)));
 
-export const handleHttpErrors = <A, R>(effect: Effect.Effect<A, unknown, R>) =>
+export const handleHttpErrors = <Success, Requirements>(
+  effect: Effect.Effect<Success, unknown, Requirements>,
+) =>
   effect.pipe(
     // Handle expected tagged errors explicitly.
     Effect.catchTags({
-      ValidationError: (error: RequestValidationError) => logAndRespond(error),
+      SchemaValidationError: (error: SchemaValidationError) => logAndRespond(error),
       DomainError: (error: DomainError) => logAndRespond(error),
       RepositoryError: (error: RepositoryError) => logAndRespond(error),
     }),

@@ -1,17 +1,14 @@
-import { Data, Effect } from "effect";
+import { Effect } from "effect";
 import * as Schema from "effect/Schema";
 import { SerieService } from "../application/serie.service.js";
 import type { Serie } from "../domain/serie.js";
-
-export class RequestValidationError extends Data.TaggedError("ValidationError")<{
-  details: string;
-}> {}
+import { SchemaValidationError } from "./errors/schema-validation-error.js";
 
 const decodeOrValidationError =
   <Output, Input>(schema: Schema.Schema<Output, Input>) =>
   (input: unknown) =>
     Schema.decodeUnknown(schema)(input).pipe(
-      Effect.mapError((error) => new RequestValidationError({ details: error.message })),
+      Effect.mapError((error) => new SchemaValidationError({ details: error.message })),
     );
 
 const createSerieSchema = Schema.Struct({

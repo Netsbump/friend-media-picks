@@ -1,7 +1,8 @@
-import { Data, Effect } from "effect";
+import { Effect } from "effect";
 import * as Schema from "effect/Schema";
 import { TvShowService } from "../application/tvshow.service.js";
 import type { TvShow } from "../domain/tvshow.js";
+import { SchemaValidationError } from "./errors/schema-validation-error.js";
 
 const personSchema = Schema.Struct({
   firstName: Schema.String,
@@ -29,16 +30,12 @@ const idSchema = Schema.Struct({
   id: Schema.String,
 });
 
-export class RequestValidationError extends Data.TaggedError("ValidationError")<{
-  details: string;
-}> {}
-
 const decodeCreateTvShowRequest = (input: unknown) => {
   const decodedInput = Schema.decodeUnknown(createTvShowSchema)(input);
 
   return decodedInput.pipe(
     Effect.mapError((error) => {
-      return new RequestValidationError({
+      return new SchemaValidationError({
         details: error.message,
       });
     }),
@@ -50,7 +47,7 @@ const decodeTvShowIdParam = (id: string) => {
 
   return decodedInput.pipe(
     Effect.mapError((error) => {
-      return new RequestValidationError({
+      return new SchemaValidationError({
         details: error.message,
       });
     }),

@@ -7,16 +7,14 @@ export const DomainErrorCode = {
 
 export type DomainErrorCode = (typeof DomainErrorCode)[keyof typeof DomainErrorCode];
 
-const DOMAIN_ERROR = "DomainError";
-
 export type DomainError = {
-  _tag: typeof DOMAIN_ERROR;
+  _tag: "DomainError";
   code: DomainErrorCode;
   message: string;
 };
 
 export const domainError = (code: DomainErrorCode, message: string): DomainError => ({
-  _tag: DOMAIN_ERROR,
+  _tag: "DomainError",
   code,
   message,
 });

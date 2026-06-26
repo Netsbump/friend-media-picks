@@ -1,4 +1,5 @@
 import { Data } from "effect";
+import { RepositoryErrorCode } from "../../application/repository.error.js";
 
 export const ApiErrorCode = {
   VALIDATION_ERROR: "VALIDATION_ERROR",
@@ -35,7 +36,7 @@ export const toApiError = (
   if (isTaggedError(error)) {
     const taggedError = error;
 
-    if (taggedError._tag === "ValidationError") {
+    if (taggedError._tag === "SchemaValidationError") {
       return new ApiError({
         status: 400,
         code: ApiErrorCode.VALIDATION_ERROR,
@@ -54,7 +55,7 @@ export const toApiError = (
 
     if (taggedError._tag === "RepositoryError") {
       const repositoryCode = taggedError.code;
-      const isNotFound = repositoryCode === "NOT_FOUND";
+      const isNotFound = repositoryCode === RepositoryErrorCode.NOT_FOUND;
 
       return new ApiError({
         // Repository failures can map to either 404 (missing entity) or 500 (storage failure).
