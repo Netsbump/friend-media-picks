@@ -3,7 +3,7 @@ import { Data } from "effect";
 export const ApiErrorCode = {
   VALIDATION_ERROR: "VALIDATION_ERROR",
   DOMAIN_ERROR: "DOMAIN_ERROR",
-  SERIE_NOT_FOUND: "SERIE_NOT_FOUND",
+  NOT_FOUND: "NOT_FOUND",
   PERSISTENCE_ERROR: "PERSISTENCE_ERROR",
   UNEXPECTED_ERROR: "UNEXPECTED_ERROR",
 } as const;
@@ -52,15 +52,15 @@ export const toApiError = (
       });
     }
 
-    if (taggedError._tag === "SerieRepositoryError") {
+    if (taggedError._tag === "RepositoryError") {
       const repositoryCode = taggedError.code;
-      const isNotFound = repositoryCode === ApiErrorCode.SERIE_NOT_FOUND;
+      const isNotFound = repositoryCode === "NOT_FOUND";
 
       return new ApiError({
         // Repository failures can map to either 404 (missing entity) or 500 (storage failure).
         status: isNotFound ? 404 : 500,
-        code: repositoryCode ?? ApiErrorCode.PERSISTENCE_ERROR,
-        message: isNotFound ? "Serie not found" : "Persistence failed",
+        code: isNotFound ? ApiErrorCode.NOT_FOUND : ApiErrorCode.PERSISTENCE_ERROR,
+        message: isNotFound ? "Resource not found" : "Persistence failed",
         // Expose technical context only in development.
         details: includeInternalDetails
           ? { internalMessage: taggedError.message, context: taggedError.details }

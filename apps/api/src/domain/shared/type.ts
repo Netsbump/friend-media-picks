@@ -2,14 +2,24 @@ export const DomainErrorCode = {
   EMPTY_TITLE: "EMPTY_TITLE",
   EMPTY_PERSON_NAME: "EMPTY_PERSON_NAME",
   INVALID_SEASONS: "INVALID_SEASONS",
-  INVALID_EPISODES: "INVALID EPISODES",
+  INVALID_EPISODES: "INVALID_EPISODES",
 } as const;
 
-export type DomainError =
-  | { code: typeof DomainErrorCode.EMPTY_TITLE; message: string }
-  | { code: typeof DomainErrorCode.EMPTY_PERSON_NAME; message: string }
-  | { code: typeof DomainErrorCode.INVALID_SEASONS; message: string }
-  | { code: typeof DomainErrorCode.INVALID_EPISODES; message: string };
+export type DomainErrorCode = (typeof DomainErrorCode)[keyof typeof DomainErrorCode];
+
+const DOMAIN_ERROR = "DomainError";
+
+export type DomainError = {
+  _tag: typeof DOMAIN_ERROR;
+  code: DomainErrorCode;
+  message: string;
+};
+
+export const domainError = (code: DomainErrorCode, message: string): DomainError => ({
+  _tag: DOMAIN_ERROR,
+  code,
+  message,
+});
 
 /**
  * Brand<T, B> creates a nominal-like type from a base type T.

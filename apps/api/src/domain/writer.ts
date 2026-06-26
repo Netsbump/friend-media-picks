@@ -32,3 +32,24 @@ export const validateNewWriter = (input: NewWriterInput): Result<ValidatedNewWri
     },
   };
 };
+
+export const validateNewWriters = (
+  inputs: ReadonlyArray<NewWriterInput>,
+): Result<ReadonlyArray<ValidatedNewWriter>> => {
+  const writers: ValidatedNewWriter[] = [];
+
+  for (const input of inputs) {
+    const writerResult = validateNewWriter(input);
+
+    if (!writerResult.success) {
+      return writerResult;
+    }
+
+    writers.push(writerResult.value);
+  }
+
+  return {
+    success: true,
+    value: writers,
+  };
+};

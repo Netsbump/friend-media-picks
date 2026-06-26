@@ -7,9 +7,8 @@ export class RequestValidationError extends Data.TaggedError("ValidationError")<
   details: string;
 }> {}
 
-// TODO: explain this synthax
 const decodeOrValidationError =
-  <A, I>(schema: Schema.Schema<A, I>) =>
+  <Output, Input>(schema: Schema.Schema<Output, Input>) =>
   (input: unknown) =>
     Schema.decodeUnknown(schema)(input).pipe(
       Effect.mapError((error) => new RequestValidationError({ details: error.message })),

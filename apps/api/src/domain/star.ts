@@ -32,3 +32,24 @@ export const validateNewStar = (input: NewStarInput): Result<ValidatedNewStar> =
     },
   };
 };
+
+export const validateNewStars = (
+  inputs: ReadonlyArray<NewStarInput>,
+): Result<ReadonlyArray<ValidatedNewStar>> => {
+  const stars: ValidatedNewStar[] = [];
+
+  for (const input of inputs) {
+    const starResult = validateNewStar(input);
+
+    if (!starResult.success) {
+      return starResult;
+    }
+
+    stars.push(starResult.value);
+  }
+
+  return {
+    success: true,
+    value: stars,
+  };
+};

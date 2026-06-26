@@ -9,22 +9,24 @@ import {
 import { DbClient } from "./database/db.service.js";
 import { series } from "./serie.schema.js";
 import {
-  SerieRepository,
-  SerieRepositoryError,
-  SerieRepositoryErrorCode,
-  SerieRepositoryOperation,
-} from "../application/serie.repository.js";
+  RepositoryEntity,
+  RepositoryError,
+  RepositoryErrorCode,
+  RepositoryOperation,
+} from "../application/repository.error.js";
+import { SerieRepository } from "../application/serie.repository.js";
 
 type SerieRow = InferSelectModel<typeof series>;
 type SerieInsert = InferInsertModel<typeof series>;
 
-const toRepoError = (operation: SerieRepositoryOperation, serieId?: string) => (e: unknown) =>
-  new SerieRepositoryError({
-    code: SerieRepositoryErrorCode.DB_FAILURE,
+const toRepoError = (operation: RepositoryOperation, serieId?: string) => (e: unknown) =>
+  new RepositoryError({
+    code: RepositoryErrorCode.DB_FAILURE,
+    entity: RepositoryEntity.SERIE,
+    operation,
     message: e instanceof Error ? e.message : String(e),
     details: {
-      operation,
-      ...(serieId ? { serieId } : {}),
+      ...(serieId ? { entityId: serieId } : {}),
       cause: e instanceof Error ? e.message : String(e),
     },
   });
@@ -32,17 +34,16 @@ const toRepoError = (operation: SerieRepositoryOperation, serieId?: string) => (
 const firstOrRepoError = <A>(
   rows: ReadonlyArray<A>,
   error: {
-    code: (typeof SerieRepositoryErrorCode)[keyof typeof SerieRepositoryErrorCode];
+    code: RepositoryErrorCode;
     message: string;
-    details: {
-      operation: SerieRepositoryOperation;
-      serieId?: string;
-    };
+    entity: RepositoryEntity;
+    operation: RepositoryOperation;
+    details?: { entityId?: string };
   },
 ) =>
   Option.fromNullable(rows[0]).pipe(
     Option.match({
-      onNone: () => Effect.fail(new SerieRepositoryError(error)),
+      onNone: () => Effect.fail(new RepositoryError(error)),
       onSome: (row) => Effect.succeed(row),
     }),
   );
@@ -72,6 +73,7 @@ export const SerieRepositoryLive = Layer.effect(
   SerieRepository,
   Effect.gen(function* () {
     const { db } = yield* DbClient;
+
     yield* Effect.logInfo("[BOOT] SerieRepository wired");
 
     const findRowById = (serieId: string) =>
@@ -79,7 +81,7 @@ export const SerieRepositoryLive = Layer.effect(
         Effect.andThen(
           Effect.tryPromise({
             try: () => db.select().from(series).where(eq(series.id, serieId)),
-            catch: toRepoError(SerieRepositoryOperation.FIND, serieId),
+            catch: toRepoError(RepositoryOperation.FIND, serieId),
           }),
         ),
       );
@@ -89,7 +91,7 @@ export const SerieRepositoryLive = Layer.effect(
         Effect.andThen(
           Effect.tryPromise({
             try: () => db.insert(series).values(mapNewSerieToInsert(newSerie)).returning(),
-            catch: toRepoError(SerieRepositoryOperation.SAVE),
+            catch: toRepoError(RepositoryOperation.SAVE),
           }),
         ),
       );
@@ -101,9 +103,11 @@ export const SerieRepositoryLive = Layer.effect(
           // In this step, we transform "rows" into a typed failure when no row exists.
           Effect.flatMap((rows) =>
             firstOrRepoError(rows, {
-              code: SerieRepositoryErrorCode.NOT_FOUND,
+              code: RepositoryErrorCode.NOT_FOUND,
+              entity: RepositoryEntity.SERIE,
+              operation: RepositoryOperation.FIND,
               message: "Serie not found",
-              details: { operation: SerieRepositoryOperation.FIND, serieId },
+              details: { entityId: serieId },
             }),
           ),
           Effect.tap(() => Effect.logInfo(`[REPO] find serie success id=${serieId}`)),
@@ -114,9 +118,10 @@ export const SerieRepositoryLive = Layer.effect(
           // Same composition pattern for save: empty insert result becomes a typed repository error.
           Effect.flatMap((rows) =>
             firstOrRepoError(rows, {
-              code: SerieRepositoryErrorCode.DB_EMPTY_RESULT,
+              code: RepositoryErrorCode.DB_EMPTY_RESULT,
+              entity: RepositoryEntity.SERIE,
+              operation: RepositoryOperation.SAVE,
               message: "Insert did not return a row",
-              details: { operation: SerieRepositoryOperation.SAVE },
             }),
           ),
           Effect.tap(() => Effect.logInfo("[REPO] save serie success")),

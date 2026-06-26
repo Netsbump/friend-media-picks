@@ -4,7 +4,7 @@ import { Effect, Layer } from "effect";
 import { createServer } from "node:http";
 
 import { SerieRepositoryLive } from "./infrastructure/serie.repository.drizzle.js";
-import { withHttpErrors } from "./http/errors/http-error-handler.js";
+import { handleHttpErrors } from "./http/errors/http-error-handler.js";
 import { DbClientLive } from "./infrastructure/database/db.service.js";
 import { EnvConfigLive } from "./infrastructure/config/env.service.js";
 import { createSerieHandler, getSerieHandler } from "./http/serie.handler.js";
@@ -12,7 +12,7 @@ import { SerieServiceLive } from "./application/serie.service.live.js";
 
 const port = Number(process.env.API_PORT ?? 3000);
 
-const createSerieRoute = withHttpErrors(
+const createSerieRoute = handleHttpErrors(
   Effect.gen(function* () {
     const startedAt = Date.now();
     yield* Effect.logInfo("[HTTP] POST /series start");
@@ -27,7 +27,7 @@ const createSerieRoute = withHttpErrors(
   }),
 );
 
-const getSerieRoute = withHttpErrors(
+const getSerieRoute = handleHttpErrors(
   Effect.gen(function* () {
     const startedAt = Date.now();
     const params = yield* HttpRouter.params;

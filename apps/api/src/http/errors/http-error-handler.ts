@@ -1,9 +1,9 @@
 import { HttpServerResponse } from "@effect/platform";
 import { Effect } from "effect";
 
-import type { DomainError } from "../../domain/serie.js";
+import type { DomainError } from "../../domain/shared/type.js";
+import type { RepositoryError } from "../../application/repository.error.js";
 import { toApiError } from "./api-error.js";
-import type { SerieRepositoryError } from "../../application/serie.repository.js";
 import type { RequestValidationError } from "../serie.handler.js";
 
 const isDevelopment = process.env.NODE_ENV === "development";
@@ -35,13 +35,13 @@ const logError = (error: unknown) =>
 
 const logAndRespond = (error: unknown) => logError(error).pipe(Effect.andThen(toResponse(error)));
 
-export const withHttpErrors = <A, R>(effect: Effect.Effect<A, unknown, R>) =>
+export const handleHttpErrors = <A, R>(effect: Effect.Effect<A, unknown, R>) =>
   effect.pipe(
     // Handle expected tagged errors explicitly.
     Effect.catchTags({
       ValidationError: (error: RequestValidationError) => logAndRespond(error),
       DomainError: (error: DomainError) => logAndRespond(error),
-      SerieRepositoryError: (error: SerieRepositoryError) => logAndRespond(error),
+      RepositoryError: (error: RepositoryError) => logAndRespond(error),
     }),
     // Catch defects / unknown errors as last-resort 500.
     Effect.catchAll((error) => logAndRespond(error)),

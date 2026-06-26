@@ -2,11 +2,12 @@ import { Effect, Layer } from "effect";
 import { describe, expect, it } from "vitest";
 
 import {
-  SerieRepository,
-  SerieRepositoryError,
-  SerieRepositoryErrorCode,
-  SerieRepositoryOperation,
-} from "../application/serie.repository.js";
+  RepositoryEntity,
+  RepositoryError,
+  RepositoryErrorCode,
+  RepositoryOperation,
+} from "../application/repository.error.js";
+import { SerieRepository } from "../application/serie.repository.js";
 import { SerieServiceLive } from "../application/serie.service.live.js";
 import { createSerieHandler, getSerieHandler } from "./serie.handler.js";
 
@@ -25,10 +26,11 @@ const repoLayer = Layer.succeed(SerieRepository, {
   findById: () => Effect.succeed(sampleSerie),
   save: () =>
     Effect.fail(
-      new SerieRepositoryError({
-        code: SerieRepositoryErrorCode.DB_FAILURE,
+      new RepositoryError({
+        code: RepositoryErrorCode.DB_FAILURE,
+        entity: RepositoryEntity.SERIE,
+        operation: RepositoryOperation.SAVE,
         message: "unused",
-        details: { operation: SerieRepositoryOperation.SAVE },
       }),
     ),
 });

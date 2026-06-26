@@ -1,4 +1,4 @@
-import { DomainErrorCode, type Brand, type Result } from "./shared/type.js";
+import { DomainErrorCode, domainError, type Brand, type Result } from "./shared/type.js";
 
 export type Genre = {
   id: string;
@@ -14,7 +14,7 @@ export const createGenreName = (raw: string): Result<GenreName> => {
   if (value.length === 0) {
     return {
       success: false,
-      error: { code: DomainErrorCode.EMPTY_TITLE, message: "Genre name cannot be empty." },
+      error: domainError(DomainErrorCode.EMPTY_TITLE, "Genre name cannot be empty."),
     };
   }
 
@@ -44,5 +44,26 @@ export const validateNewGenre = (input: NewGenreInput): Result<ValidatedNewGenre
       name: nameResult.value,
       description: input.description,
     },
+  };
+};
+
+export const validateNewGenres = (
+  inputs: ReadonlyArray<NewGenreInput>,
+): Result<ReadonlyArray<ValidatedNewGenre>> => {
+  const genres: ValidatedNewGenre[] = [];
+
+  for (const input of inputs) {
+    const genreResult = validateNewGenre(input);
+
+    if (!genreResult.success) {
+      return genreResult;
+    }
+
+    genres.push(genreResult.value);
+  }
+
+  return {
+    success: true,
+    value: genres,
   };
 };

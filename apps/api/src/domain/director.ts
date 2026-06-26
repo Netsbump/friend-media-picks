@@ -32,3 +32,24 @@ export const validateNewDirector = (input: NewDirectorInput): Result<ValidatedNe
     },
   };
 };
+
+export const validateNewDirectors = (
+  inputs: ReadonlyArray<NewDirectorInput>,
+): Result<ReadonlyArray<ValidatedNewDirector>> => {
+  const directors: ValidatedNewDirector[] = [];
+
+  for (const input of inputs) {
+    const directorResult = validateNewDirector(input);
+
+    if (!directorResult.success) {
+      return directorResult;
+    }
+
+    directors.push(directorResult.value);
+  }
+
+  return {
+    success: true,
+    value: directors,
+  };
+};

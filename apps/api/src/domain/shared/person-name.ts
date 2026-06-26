@@ -1,4 +1,4 @@
-import { DomainErrorCode, type Brand, type Result } from "./type.js";
+import { DomainErrorCode, domainError, type Brand, type Result } from "./type.js";
 
 export type PersonName = Brand<string, "PersonName">;
 
@@ -7,10 +7,7 @@ export const createPersonName = (raw: string): Result<PersonName> => {
   if (value.length === 0) {
     return {
       success: false,
-      error: {
-        code: DomainErrorCode.EMPTY_PERSON_NAME,
-        message: "Person name cannot be empty.",
-      },
+      error: domainError(DomainErrorCode.EMPTY_PERSON_NAME, "Person name cannot be empty."),
     };
   }
 

@@ -1,16 +1,15 @@
-import { DomainErrorCode, type Brand, type Result } from "./shared/type.js";
+import { DomainErrorCode, domainError, type Brand, type Result } from "./shared/type.js";
 
 // Value Object (types)
 export type SerieTitle = Brand<string, "SerieTitle">;
 export type SeasonCount = Brand<number, "SeasonCount">;
-
 
 const createSerieTitle = (raw: string): Result<SerieTitle> => {
   const value = raw.trim();
   if (value.length === 0) {
     return {
       success: false,
-      error: { code: DomainErrorCode.EMPTY_TITLE, message: "Title cannot be empty." },
+      error: domainError(DomainErrorCode.EMPTY_TITLE, "Title cannot be empty."),
     };
   }
 
@@ -24,10 +23,7 @@ const createSeasonCount = (raw: number): Result<SeasonCount> => {
   if (!Number.isInteger(raw) || raw <= 0) {
     return {
       success: false,
-      error: {
-        code: DomainErrorCode.INVALID_SEASONS,
-        message: "Serie must have at least one season.",
-      },
+      error: domainError(DomainErrorCode.INVALID_SEASONS, "Serie must have at least one season."),
     };
   }
 
