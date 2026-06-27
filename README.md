@@ -80,7 +80,7 @@ Rules are documented in `AGENTS.md`.
 
 ## Troubleshooting
 
-- If you get `SCHEMA_MISSING` or a missing table relation error, run:
+- If you get `SCHEMA_MISSING` or a missing table relation error like `relation "tv_shows" does not exist`, run:
 
 ```bash
 pnpm --filter @friend-media-picks/api db:migrate

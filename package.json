@@ -9,6 +9,11 @@
     "lint:fix": "oxlint --fix --tsconfig apps/api/tsconfig.json apps/api/src",
     "format": "oxfmt --write apps/api/src",
     "format:check": "oxfmt --check apps/api/src",
+    "db:check": "pnpm --filter @friend-media-picks/api db:check",
+    "db:drop": "pnpm --filter @friend-media-picks/api db:drop",
+    "db:migrate": "pnpm --filter @friend-media-picks/api db:migrate",
+    "db:reset": "docker compose down --volumes && docker compose up -d",
+    "db:studio": "pnpm --filter @friend-media-picks/api db:studio",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "prepare": "effect-language-service patch"
