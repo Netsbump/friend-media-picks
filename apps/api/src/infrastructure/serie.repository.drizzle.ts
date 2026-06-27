@@ -1,4 +1,4 @@
-import { Effect, Layer, Option } from "effect";
+import { Effect, Layer } from "effect";
 import { eq } from "drizzle-orm";
 import {
   unwrapSeasonCount,
@@ -27,23 +27,6 @@ const toRepoError = (operation: RepositoryOperation, serieId?: string) => (e: un
       cause: e instanceof Error ? e.message : String(e),
     },
   });
-
-const firstOrRepoError = <A>(
-  rows: ReadonlyArray<A>,
-  error: {
-    code: RepositoryErrorCode;
-    message: string;
-    entity: RepositoryEntity;
-    operation: RepositoryOperation;
-    details?: { entityId?: string };
-  },
-) =>
-  Option.fromNullable(rows[0]).pipe(
-    Option.match({
-      onNone: () => Effect.fail(new RepositoryError(error)),
-      onSome: (row) => Effect.succeed(row),
-    }),
-  );
 
 const toSerieInsert = (newSerie: ValidatedSerie): SerieInsert => ({
   title: unwrapSerieTitle(newSerie.title),
@@ -74,56 +57,63 @@ export const SerieRepositoryLive = Layer.effect(
     yield* Effect.logInfo("[BOOT] SerieRepository wired");
 
     const findRowById = (serieId: string) =>
-      Effect.logInfo(`[REPO] find serie start id=${serieId}`).pipe(
-        Effect.andThen(
-          Effect.tryPromise({
-            try: () => db.select().from(series).where(eq(series.id, serieId)),
-            catch: toRepoError(RepositoryOperation.FIND, serieId),
-          }),
-        ),
-      );
+      Effect.gen(function* () {
+        yield* Effect.logInfo(`[REPO] find serie start id=${serieId}`);
+
+        return yield* Effect.mapError(
+          db.select().from(series).where(eq(series.id, serieId)),
+          toRepoError(RepositoryOperation.FIND, serieId),
+        );
+      });
 
     const insertRow = (newSerie: ValidatedSerie) =>
-      Effect.logInfo("[REPO] save serie start").pipe(
-        Effect.andThen(
-          Effect.tryPromise({
-            try: () => db.insert(series).values(toSerieInsert(newSerie)).returning(),
-            catch: toRepoError(RepositoryOperation.SAVE),
-          }),
-        ),
-      );
+      Effect.gen(function* () {
+        yield* Effect.logInfo("[REPO] save serie start");
+
+        return yield* Effect.mapError(
+          db.insert(series).values(toSerieInsert(newSerie)).returning(),
+          toRepoError(RepositoryOperation.SAVE),
+        );
+      });
 
     return {
       findById: (serieId: string) =>
-        findRowById(serieId).pipe(
-          // flatMap is used when the callback returns another Effect.
-          // In this step, we transform "rows" into a typed failure when no row exists.
-          Effect.flatMap((rows) =>
-            firstOrRepoError(rows, {
+        Effect.gen(function* () {
+          const rows = yield* findRowById(serieId);
+          const row = rows[0];
+
+          if (row === undefined) {
+            return yield* new RepositoryError({
               code: RepositoryErrorCode.NOT_FOUND,
               entity: RepositoryEntity.SERIE,
               operation: RepositoryOperation.FIND,
               message: "Serie not found",
               details: { entityId: serieId },
-            }),
-          ),
-          Effect.tap(() => Effect.logInfo(`[REPO] find serie success id=${serieId}`)),
-          Effect.map(toSerieDomain),
-        ),
+            });
+          }
+
+          yield* Effect.logInfo(`[REPO] find serie success id=${serieId}`);
+
+          return toSerieDomain(row);
+        }),
       save: (newSerie: ValidatedSerie) =>
-        insertRow(newSerie).pipe(
-          // Same composition pattern for save: empty insert result becomes a typed repository error.
-          Effect.flatMap((rows) =>
-            firstOrRepoError(rows, {
+        Effect.gen(function* () {
+          const rows = yield* insertRow(newSerie);
+          const row = rows[0];
+
+          if (row === undefined) {
+            return yield* new RepositoryError({
               code: RepositoryErrorCode.DB_EMPTY_RESULT,
               entity: RepositoryEntity.SERIE,
               operation: RepositoryOperation.SAVE,
               message: "Insert did not return a row",
-            }),
-          ),
-          Effect.tap(() => Effect.logInfo("[REPO] save serie success")),
-          Effect.map(toSerieDomain),
-        ),
+            });
+          }
+
+          yield* Effect.logInfo("[REPO] save serie success");
+
+          return toSerieDomain(row);
+        }),
     };
   }),
 );

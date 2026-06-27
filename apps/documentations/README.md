@@ -1,5 +1,9 @@
 # Notes d'apprentissage : FP + Effect TS
 
+Documents complémentaires :
+
+- [Effect, Drizzle et transactions](./effect-drizzle-transactions.md)
+
 Ce document sert de prise de notes pour comprendre les bases de la programmation fonctionnelle (FP) et leur
 application avec Effect TS.
 

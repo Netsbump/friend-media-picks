@@ -1,38 +1,42 @@
-import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
-import { Data, Effect } from "effect";
+import * as PgDrizzle from "drizzle-orm/effect-postgres";
+import * as PgClient from "@effect/sql-pg/PgClient";
+import { Effect, Redacted } from "effect";
+import { types } from "pg";
 import type { DbSchema } from "./db.schema.js";
 
-export type Database = ReturnType<typeof drizzle<DbSchema>>;
+export type Database = Effect.Effect.Success<ReturnType<typeof createDrizzleDbClient>>;
 
-const CONNECTION_STRING = "CONNECTION_STRING";
-
-export class ConnectionStringError extends Data.TaggedError("ConnectionStringError")<{
-  code: typeof CONNECTION_STRING;
-  message: string;
-}> {}
-
-const validateConnectionString = (
-  connectionString: string,
-): Effect.Effect<string, ConnectionStringError> =>
-  connectionString
-    ? Effect.succeed(connectionString)
-    : Effect.fail(
-        new ConnectionStringError({
-          code: CONNECTION_STRING,
-          message: "DATABASE_URL is required to create the Postgres Client",
-        }),
-      );
+const DRIZZLE_RAW_PG_TYPE_IDS = Object.values({
+  timestamptz: 1184,
+  timestamp: 1114,
+  date: 1082,
+  interval: 1186,
+  numericArray: 1231,
+  timestampArray: 1115,
+  timestamptzArray: 1185,
+  intervalArray: 1187,
+  dateArray: 1182,
+});
 
 export const createDrizzleDbClient = (connectionString: string) =>
   Effect.gen(function* () {
-    const validConnectionString = yield* validateConnectionString(connectionString);
+    const pgClientLayer = PgClient.layer({
+      url: Redacted.make(connectionString),
+      types: {
+        getTypeParser: (
+          typeId: Parameters<typeof types.getTypeParser>[0],
+          format?: Parameters<typeof types.getTypeParser>[1],
+        ) => {
+          if (DRIZZLE_RAW_PG_TYPE_IDS.includes(typeId)) {
+            return (value: string) => value;
+          }
 
-    const pool = new Pool({
-      connectionString: validConnectionString,
+          return types.getTypeParser(typeId, format);
+        },
+      },
     });
 
-    yield* Effect.logInfo("[BOOT] Postgres pool created");
+    yield* Effect.logInfo("[BOOT] Effect Postgres client layer created");
 
-    return drizzle<DbSchema>(pool);
+    return yield* Effect.provide(PgDrizzle.makeWithDefaults<DbSchema>(), pgClientLayer);
   });

@@ -1,4 +1,5 @@
 import { eq, sql } from "drizzle-orm";
+import { Effect } from "effect";
 import type { ValidatedDirector } from "../domain/director.js";
 import type { ValidatedGenre } from "../domain/genre.js";
 import type { ValidatedStar } from "../domain/star.js";
@@ -16,7 +17,9 @@ import {
 } from "./schemas/tvshow.schema.js";
 import { toGenreInsert, toPersonInsert } from "./tvshow.mappers.js";
 
-export const makeTvShowQueries = (db: Database) => {
+type TvShowQueryExecutor = Pick<Database, "insert" | "select">;
+
+export const makeTvShowQueries = (db: TvShowQueryExecutor) => {
   const selectDirectors = (tvShowId: string) =>
     db
       .select({ id: persons.id, firstName: persons.firstName, lastName: persons.lastName })
@@ -49,7 +52,7 @@ export const makeTvShowQueries = (db: Database) => {
     input: ReadonlyArray<ValidatedDirector | ValidatedWriter | ValidatedStar>,
   ) =>
     input.length === 0
-      ? Promise.resolve([])
+      ? Effect.succeed([])
       : db
           .insert(persons)
           .values(input.map((person) => toPersonInsert(person)))
@@ -57,7 +60,7 @@ export const makeTvShowQueries = (db: Database) => {
 
   const insertGenres = (input: ReadonlyArray<ValidatedGenre>) =>
     input.length === 0
-      ? Promise.resolve([])
+      ? Effect.succeed([])
       : db
           .insert(genres)
           .values(input.map((genre) => toGenreInsert(genre)))
@@ -69,35 +72,31 @@ export const makeTvShowQueries = (db: Database) => {
 
   const insertTvShowDirectors = (tvShowId: string, rows: ReadonlyArray<PersonRow>) =>
     rows.length === 0
-      ? Promise.resolve()
-      : db
-          .insert(tvShowDirectors)
-          .values(rows.map((row) => ({ tvShowId, personId: row.id })))
-          .then(() => {});
+      ? Effect.void
+      : Effect.asVoid(
+          db.insert(tvShowDirectors).values(rows.map((row) => ({ tvShowId, personId: row.id }))),
+        );
 
   const insertTvShowWriters = (tvShowId: string, rows: ReadonlyArray<PersonRow>) =>
     rows.length === 0
-      ? Promise.resolve()
-      : db
-          .insert(tvShowWriters)
-          .values(rows.map((row) => ({ tvShowId, personId: row.id })))
-          .then(() => {});
+      ? Effect.void
+      : Effect.asVoid(
+          db.insert(tvShowWriters).values(rows.map((row) => ({ tvShowId, personId: row.id }))),
+        );
 
   const insertTvShowStars = (tvShowId: string, rows: ReadonlyArray<PersonRow>) =>
     rows.length === 0
-      ? Promise.resolve()
-      : db
-          .insert(tvShowStars)
-          .values(rows.map((row) => ({ tvShowId, personId: row.id })))
-          .then(() => {});
+      ? Effect.void
+      : Effect.asVoid(
+          db.insert(tvShowStars).values(rows.map((row) => ({ tvShowId, personId: row.id }))),
+        );
 
   const insertTvShowGenres = (tvShowId: string, rows: ReadonlyArray<GenreRow>) =>
     rows.length === 0
-      ? Promise.resolve()
-      : db
-          .insert(tvShowGenres)
-          .values(rows.map((row) => ({ tvShowId, genreId: row.id })))
-          .then(() => {});
+      ? Effect.void
+      : Effect.asVoid(
+          db.insert(tvShowGenres).values(rows.map((row) => ({ tvShowId, genreId: row.id }))),
+        );
 
   const insertTvShow = (row: TvShowInsert) => db.insert(tvShows).values(row).returning();
 

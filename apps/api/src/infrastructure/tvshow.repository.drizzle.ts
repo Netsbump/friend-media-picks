@@ -1,5 +1,5 @@
-import { Effect, Layer, Option } from "effect";
-import type { TvShow, ValidatedTvShow } from "../domain/tvshow.js";
+import { Effect, Layer } from "effect";
+import type { ValidatedTvShow } from "../domain/tvshow.js";
 import type { TvShowRow } from "./schemas/tvshow.schema.js";
 import {
   toDirectorDomain,
@@ -19,6 +19,9 @@ import {
 import { TvShowRepository } from "../application/tvshow.repository.js";
 import { DbClient } from "../database/db.service.js";
 
+// Avoid flooding the database when hydrating many rows.
+const TV_SHOW_HYDRATION_CONCURRENCY = 10;
+
 const toRepoError = (operation: RepositoryOperation, tvShowId?: string) => (e: unknown) =>
   new RepositoryError({
     code: RepositoryErrorCode.DB_FAILURE,
@@ -31,142 +34,154 @@ const toRepoError = (operation: RepositoryOperation, tvShowId?: string) => (e: u
     },
   });
 
-const firstOrRepoError = <A>(
-  rows: ReadonlyArray<A>,
-  error: {
-    code: RepositoryErrorCode;
-    message: string;
-    entity: RepositoryEntity;
-    operation: RepositoryOperation;
-    details?: { entityId?: string };
-  },
-) =>
-  Option.fromNullable(rows[0]).pipe(
-    Option.match({
-      onNone: () => Effect.fail(new RepositoryError(error)),
-      onSome: (row) => Effect.succeed(row),
-    }),
-  );
-
 export const TvShowRepositoryLive = Layer.effect(
   TvShowRepository,
   Effect.gen(function* () {
     const { db } = yield* DbClient;
+
     const queries = makeTvShowQueries(db);
 
     yield* Effect.logInfo("[BOOT] TvShowRepository wired");
 
-    const hydrateTvShow = async (row: TvShowRow): Promise<TvShow> => {
-      const [directorRows, writerRows, starRows, genreRows] = await Promise.all([
-        queries.selectDirectors(row.id),
-        queries.selectWriters(row.id),
-        queries.selectStars(row.id),
-        queries.selectGenres(row.id),
-      ]);
+    const hydrateTvShow = (row: TvShowRow) =>
+      Effect.gen(function* () {
+        const [directorRows, writerRows, starRows, genreRows] = yield* Effect.all(
+          [
+            queries.selectDirectors(row.id),
+            queries.selectWriters(row.id),
+            queries.selectStars(row.id),
+            queries.selectGenres(row.id),
+          ],
+          { concurrency: "unbounded" },
+        );
 
-      return toTvShowDomain(row, {
-        directors: directorRows.map((d) => toDirectorDomain(d)),
-        writers: writerRows.map((w) => toWriterDomain(w)),
-        stars: starRows.map((s) => toStarDomain(s)),
-        genres: genreRows.map((g) => toGenreDomain(g)),
+        return toTvShowDomain(row, {
+          directors: directorRows.map((d) => toDirectorDomain(d)),
+          writers: writerRows.map((w) => toWriterDomain(w)),
+          stars: starRows.map((s) => toStarDomain(s)),
+          genres: genreRows.map((g) => toGenreDomain(g)),
+        });
       });
-    };
 
     const findRowById = (tvShowId: string) =>
-      Effect.logInfo(`[REPO] find tvshow start id=${tvShowId}`).pipe(
-        Effect.andThen(
-          Effect.tryPromise({
-            try: () => queries.selectTvShowById(tvShowId),
-            catch: toRepoError(RepositoryOperation.FIND, tvShowId),
-          }),
-        ),
-      );
+      Effect.gen(function* () {
+        yield* Effect.logInfo(`[REPO] find tvshow start id=${tvShowId}`);
+
+        return yield* Effect.mapError(
+          queries.selectTvShowById(tvShowId),
+          toRepoError(RepositoryOperation.FIND, tvShowId),
+        );
+      });
 
     const findRows = () =>
-      Effect.logInfo("[REPO] find all tvshows start").pipe(
-        Effect.andThen(
-          Effect.tryPromise({
-            try: queries.selectTvShows,
-            catch: toRepoError(RepositoryOperation.FIND_ALL),
-          }),
-        ),
-      );
+      Effect.gen(function* () {
+        yield* Effect.logInfo("[REPO] find all tvshows start");
+
+        return yield* Effect.mapError(
+          queries.selectTvShows(),
+          toRepoError(RepositoryOperation.FIND_ALL),
+        );
+      });
 
     const insertTvShowAggregate = (tvShow: ValidatedTvShow) =>
-      Effect.logInfo("[REPO] save tvshow start").pipe(
-        Effect.andThen(
-          Effect.tryPromise({
-            try: async () => {
-              const insertedTvShows = await queries.insertTvShow(toTvShowInsert(tvShow));
+      Effect.mapError(
+        Effect.gen(function* () {
+          const transactionRows = yield* db.transaction((tx) =>
+            Effect.gen(function* () {
+              const txQueries = makeTvShowQueries(tx);
+
+              yield* Effect.logInfo("[REPO] save tvshow start");
+
+              const insertedTvShows = yield* txQueries.insertTvShow(toTvShowInsert(tvShow));
               const insertedTvShow = insertedTvShows[0];
 
-              if (!insertedTvShow) {
+              if (insertedTvShow === undefined) {
                 return [];
               }
 
-              const [directorRows, writerRows, starRows, genreRows] = await Promise.all([
-                queries.insertPersons(tvShow.directors),
-                queries.insertPersons(tvShow.writers),
-                queries.insertPersons(tvShow.stars),
-                queries.insertGenres(tvShow.genres),
-              ]);
+              const directorRows = yield* txQueries.insertPersons(tvShow.directors);
+              const writerRows = yield* txQueries.insertPersons(tvShow.writers);
+              const starRows = yield* txQueries.insertPersons(tvShow.stars);
+              const genreRows = yield* txQueries.insertGenres(tvShow.genres);
 
-              await Promise.all([
-                queries.insertTvShowDirectors(insertedTvShow.id, directorRows),
-                queries.insertTvShowWriters(insertedTvShow.id, writerRows),
-                queries.insertTvShowStars(insertedTvShow.id, starRows),
-                queries.insertTvShowGenres(insertedTvShow.id, genreRows),
-              ]);
+              yield* txQueries.insertTvShowDirectors(insertedTvShow.id, directorRows);
+              yield* txQueries.insertTvShowWriters(insertedTvShow.id, writerRows);
+              yield* txQueries.insertTvShowStars(insertedTvShow.id, starRows);
+              yield* txQueries.insertTvShowGenres(insertedTvShow.id, genreRows);
 
-              return [await hydrateTvShow(insertedTvShow)];
-            },
-            catch: toRepoError(RepositoryOperation.SAVE),
-          }),
-        ),
+              return [insertedTvShow];
+            }),
+          );
+          const insertedTvShow = transactionRows[0];
+
+          if (insertedTvShow === undefined) {
+            return [];
+          }
+
+          return [yield* hydrateTvShow(insertedTvShow)];
+        }),
+        toRepoError(RepositoryOperation.SAVE),
       );
 
     return {
       findById: (tvShowId: string) =>
-        findRowById(tvShowId).pipe(
-          Effect.flatMap((rows) =>
-            firstOrRepoError(rows, {
+        Effect.gen(function* () {
+          const rows = yield* findRowById(tvShowId);
+          const row = rows[0];
+
+          if (row === undefined) {
+            return yield* new RepositoryError({
               code: RepositoryErrorCode.NOT_FOUND,
               entity: RepositoryEntity.TVSHOW,
               operation: RepositoryOperation.FIND,
               message: "TvShow not found",
               details: { entityId: tvShowId },
-            }),
-          ),
-          Effect.flatMap((row) =>
-            Effect.tryPromise({
-              try: () => hydrateTvShow(row),
-              catch: toRepoError(RepositoryOperation.FIND, tvShowId),
-            }),
-          ),
-          Effect.tap(() => Effect.logInfo(`[REPO] find tvshow success id=${tvShowId}`)),
-        ),
+            });
+          }
+
+          const tvShow = yield* Effect.mapError(
+            hydrateTvShow(row),
+            toRepoError(RepositoryOperation.FIND, tvShowId),
+          );
+
+          yield* Effect.logInfo(`[REPO] find tvshow success id=${tvShowId}`);
+
+          return tvShow;
+        }),
+
       findAll: () =>
-        findRows().pipe(
-          Effect.flatMap((rows) =>
-            Effect.tryPromise({
-              try: () => Promise.all(rows.map((row) => hydrateTvShow(row))),
-              catch: toRepoError(RepositoryOperation.FIND_ALL),
-            }),
-          ),
-          Effect.tap(() => Effect.logInfo("[REPO] find all tvshows success")),
-        ),
+        Effect.gen(function* () {
+          const rows = yield* findRows();
+          const tvShows = yield* Effect.mapError(
+            Effect.all(
+              rows.map((row) => hydrateTvShow(row)),
+              { concurrency: TV_SHOW_HYDRATION_CONCURRENCY },
+            ),
+            toRepoError(RepositoryOperation.FIND_ALL),
+          );
+
+          yield* Effect.logInfo("[REPO] find all tvshows success");
+
+          return tvShows;
+        }),
       save: (tvShow: ValidatedTvShow) =>
-        insertTvShowAggregate(tvShow).pipe(
-          Effect.flatMap((rows) =>
-            firstOrRepoError(rows, {
+        Effect.gen(function* () {
+          const rows = yield* insertTvShowAggregate(tvShow);
+          const row = rows[0];
+
+          if (row === undefined) {
+            return yield* new RepositoryError({
               code: RepositoryErrorCode.DB_EMPTY_RESULT,
               entity: RepositoryEntity.TVSHOW,
               operation: RepositoryOperation.SAVE,
               message: "Insert did not return a row",
-            }),
-          ),
-          Effect.tap(() => Effect.logInfo("[REPO] save tvshow success")),
-        ),
+            });
+          }
+
+          yield* Effect.logInfo("[REPO] save tvshow success");
+
+          return row;
+        }),
     };
   }),
 );

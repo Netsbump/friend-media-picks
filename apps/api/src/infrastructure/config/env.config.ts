@@ -14,10 +14,10 @@ export class EnvError extends Data.TaggedError("EnvError")<{
 // Validate and normalize environment variables used by the API.
 const envSchema = Schema.Struct({
   NODE_ENV: Schema.Literal("development", "test", "production"),
-  DB_USER: Schema.String,
-  DB_PASSWORD: Schema.String,
-  DB_NAME: Schema.String,
-  DB_HOST: Schema.String,
+  DB_USER: Schema.NonEmptyString,
+  DB_PASSWORD: Schema.NonEmptyString,
+  DB_NAME: Schema.NonEmptyString,
+  DB_HOST: Schema.NonEmptyString,
   DB_PORT: Schema.NumberFromString.pipe(Schema.int(), Schema.positive()),
 });
 
