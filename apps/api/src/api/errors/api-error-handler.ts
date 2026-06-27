@@ -1,10 +1,9 @@
 import { HttpServerResponse } from "@effect/platform";
 import { Effect } from "effect";
-
 import type { DomainError } from "../../domain/shared/type.js";
 import type { RepositoryError } from "../../application/repository.error.js";
 import { toApiError } from "./api-error.js";
-import type { SchemaValidationError } from "./schema-validation-error.js";
+import type { SchemaValidationError } from "../tvshow.handler.js";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 

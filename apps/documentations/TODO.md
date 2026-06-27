@@ -2,11 +2,8 @@
 
 ## Features API
 
-- [ ] Renommer le modele `serie` en `tvshow` dans tout le projet
-- [ ] Renommer les routes `/series` en `/tvshows`
-- [ ] Renommer les fichiers, services, repositories, handlers et tests lies a `serie` vers `tvshow`
-- [ ] Implementer `GET /tvshows` (list all)
-- [ ] Implementer `GET /tvshows/:id` (get by id)
+- [x] Implementer `GET /tvshows` (list all)
+- [x] Implementer `GET /tvshows/:id` (get by id)
 - [ ] Gérer les cas `not found` avec une erreur metier/API claire
 - [ ] Ajouter pagination simple sur `GET /tvshows`
 

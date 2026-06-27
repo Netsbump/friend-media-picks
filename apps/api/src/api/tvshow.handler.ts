@@ -1,8 +1,11 @@
-import { Effect } from "effect";
+import { Data, Effect } from "effect";
 import * as Schema from "effect/Schema";
 import { TvShowService } from "../application/tvshow.service.js";
-import { SchemaValidationError } from "./errors/schema-validation-error.js";
 import { toTvShowApiResponse, toTvShowsApiResponse } from "./tvshow.mappers.js";
+
+export class SchemaValidationError extends Data.TaggedError("SchemaValidationError")<{
+  details: string;
+}> {}
 
 const personSchema = Schema.Struct({
   firstName: Schema.String,

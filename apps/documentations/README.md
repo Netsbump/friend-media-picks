@@ -51,8 +51,8 @@ Les **fibers** sont des unites d'execution legeres gerees par le runtime Effect.
 
 Exemple mental:
 
-- `Effect<Serie, DomainError, never>`
-  - produit une `Serie`
+- `Effect<TvShow, DomainError, never>`
+  - produit un `TvShow`
   - peut echouer avec `DomainError`
   - ne depend d'aucun service externe
 
@@ -80,7 +80,7 @@ Heuristique rapide:
 
 Dans l'API:
 
-- `ValidationError`, `DomainError`, `SerieRepositoryError` = expected errors.
+- `ValidationError`, `DomainError`, `RepositoryError` = expected errors.
 - bug runtime inattendu = defect. => à préciser
 
 ## 4) Context.Tag et Layer
@@ -93,7 +93,7 @@ Exemple actuel:
 
 - `DbClient` est un service (Tag).
 - `DbClientLive` construit ce service.
-- `SerieRepositoryLive` dépend du service `DbClient` (abstraction), et au runtime on lui fournit `DbClientLive` (implémentation).
+- `TvShowRepositoryLive` depend du service `DbClient` (abstraction), et au runtime on lui fournit `DbClientLive` (implementation).
 
 ## 5) Clean Architecture adaptee en FP pragmatique
 
@@ -115,9 +115,9 @@ Ici, "shell" ne veut pas dire terminal Unix. C'est la **coquille imperative** au
 
 Autrement dit: le shell relie ton application au monde exterieur.
 
-## 6) Flux cible de la route create serie
+## 6) Flux cible de la route create tvshow
 
-1. `POST /series`
+1. `POST /tvshows`
 2. Controller: parse Zod (`ValidationError` si invalide)
 3. Use case: validation domaine pure (`DomainError`) + appel repository
 4. Repository: insertion DB (erreur infra typee)
@@ -153,15 +153,15 @@ La difference principale n'est pas "on chaine des fonctions" mais le modele de p
 En OOP, on injecte souvent les dependances via constructeur/interface.
 
 ```ts
-interface SerieRepository {
+interface TvShowRepository {
   // Dependency is injected via constructor.
-  save(input: NewSerie): Promise<Serie>;
+  save(input: NewTvShow): Promise<TvShow>;
 }
 
-class CreateSerieUseCase {
-  constructor(private readonly repo: SerieRepository) {}
+class CreateTvShowUseCase {
+  constructor(private readonly repo: TvShowRepository) {}
 
-  execute(input: NewSerie): Promise<Serie> {
+  execute(input: NewTvShow): Promise<TvShow> {
     return this.repo.save(input);
   }
 }
@@ -170,13 +170,13 @@ class CreateSerieUseCase {
 En FP + Effect, la dependance est dans `R` et fournie via `Layer`.
 
 ```ts
-const createSerieUseCase = (input: NewSerie) =>
+const createTvShowUseCase = (input: NewTvShow) =>
   Effect.gen(function* () {
     // Dependency is requested from Effect context.
-    const repo = yield* SerieRepository;
+    const repo = yield* TvShowRepository;
     return yield* repo.save(input);
   });
-// Type: Effect<Serie, SerieRepositoryError, SerieRepository>
+// Type: Effect<TvShow, RepositoryError, TvShowRepository>
 ```
 
 #### 2) Erreurs
@@ -186,7 +186,7 @@ En OOP, le style courant reste l'exception (implicite dans la signature).
 ```ts
 class DomainError extends Error {}
 
-function validate(input: NewSerie): NewSerie {
+function validate(input: NewTvShow): NewTvShow {
   if (input.title.trim() === "") {
     throw new DomainError("title is empty");
   }
@@ -213,7 +213,7 @@ export class InvalidSeasonsError extends Data.TaggedError(
 // ADT = union of tagged variants.
 type DomainError = EmptyTitleError | InvalidSeasonsError;
 
-const validate = (input: NewSerie): Effect.Effect<NewSerie, DomainError> => {
+const validate = (input: NewTvShow): Effect.Effect<NewTvShow, DomainError> => {
   if (input.title.trim() === "") {
     return Effect.fail(new EmptyTitleError({ message: "title is empty" }));
   }
@@ -247,10 +247,10 @@ const toHttpStatus = (error: DomainError): number => {
 En OOP, on compose souvent en sequence imperative.
 
 ```ts
-async function createSerie(
+async function createTvShow(
   input: unknown,
-  repo: SerieRepository,
-): Promise<Serie> {
+  repo: TvShowRepository,
+): Promise<TvShow> {
   // Imperative sequence: each line executes now.
   const parsed = parseInput(input);
   const validated = validate(parsed);
@@ -261,14 +261,14 @@ async function createSerie(
 En FP + Effect, on compose avec des combinators (`map`, `flatMap`, `andThen`, `zip`, etc.).
 
 ```ts
-const createSerie = (input: unknown) =>
+const createTvShow = (input: unknown) =>
   pipe(
     parseInputEffect(input),
     Effect.flatMap(validateEffect),
     // Combinator style: compose effectful steps declaratively.
     Effect.flatMap((valid) =>
       Effect.gen(function* () {
-        const repo = yield* SerieRepository;
+        const repo = yield* TvShowRepository;
         return yield* repo.save(valid);
       }),
     ),
@@ -280,13 +280,13 @@ const createSerie = (input: unknown) =>
 En OOP, l'appel execute tout de suite.
 
 ```ts
-const serie = await useCase.execute(input);
+const tvShow = await useCase.execute(input);
 ```
 
 En FP + Effect, on construit d'abord, on execute ensuite.
 
 ```ts
-const program = createSerie(input); // Build a description only.
+const program = createTvShow(input); // Build a description only.
 const result = await Effect.runPromise(program); // Execute the description.
 ```
 
@@ -385,8 +385,8 @@ Intuition:
 ```ts
 const program = Effect.gen(function* () {
   const input = yield* parseInputEffect(raw);
-  const serie = yield* createSerieUseCase(input);
-  return serie;
+  const tvShow = yield* createTvShowUseCase(input);
+  return tvShow;
 });
 ```
 
@@ -398,14 +398,14 @@ Equivalent avec pipe + flatMap:
 ```ts
 const program = pipe(
   parseInputEffect(raw),
-  Effect.flatMap((input) => createSerieUseCase(input)),
+  Effect.flatMap((input) => createTvShowUseCase(input)),
 );
 ```
 
 Equivalent avec andThen (quand on enchaine simplement):
 
 ```ts
-const program = parseInputEffect(raw).pipe(Effect.andThen(createSerieUseCase));
+const program = parseInputEffect(raw).pipe(Effect.andThen(createTvShowUseCase));
 ```
 
 Avec gestion d'erreur ajoutee (sans gen):
@@ -413,7 +413,7 @@ Avec gestion d'erreur ajoutee (sans gen):
 ```ts
 const program = pipe(
   parseInputEffect(raw),
-  Effect.flatMap(createSerieUseCase),
+  Effect.flatMap(createTvShowUseCase),
   Effect.mapError((e) => new ApiError({ cause: e })),
 );
 ```
@@ -448,12 +448,12 @@ enum DomainError {
     InvalidSeasons,
 }
 
-struct NewSerie {
+struct NewTvShow {
     title: String,
     seasons: i32,
 }
 
-fn validate_new_serie(input: NewSerie) -> Result<NewSerie, DomainError> {
+fn validate_new_tvshow(input: NewTvShow) -> Result<NewTvShow, DomainError> {
     if input.title.trim().is_empty() {
         return Err(DomainError::EmptyTitle);
     }
@@ -463,8 +463,8 @@ fn validate_new_serie(input: NewSerie) -> Result<NewSerie, DomainError> {
     Ok(input)
 }
 
-async fn create_serie_use_case(repo: &impl SerieRepository, input: NewSerie) -> Result<Serie, RepoError> {
-    let valid = validate_new_serie(input).map_err(|_| RepoError::ValidationFailed)?;
+async fn create_tvshow_use_case(repo: &impl TvShowRepository, input: NewTvShow) -> Result<TvShow, RepoError> {
+    let valid = validate_new_tvshow(input).map_err(|_| RepoError::ValidationFailed)?;
     repo.save(valid).await
 }
 ```
@@ -474,8 +474,8 @@ Idee: Rust combine types (`Result`) + `async/.await` + ownership pour controler 
 ### C#/.NET: `Task` + `Result` applicatif
 
 ```c
-public record NewSerie(string Title, int Seasons);
-public record Serie(Guid Id, string Title, int Seasons);
+public record NewTvShow(string Title, int Seasons);
+public record TvShow(Guid Id, string Title, int Seasons);
 
 public abstract record DomainError;
 public record EmptyTitle : DomainError;
@@ -483,7 +483,7 @@ public record InvalidSeasons : DomainError;
 
 public static class Domain
 {
-    public static (bool Ok, NewSerie? Value, DomainError? Error) Validate(NewSerie input)
+    public static (bool Ok, NewTvShow? Value, DomainError? Error) Validate(NewTvShow input)
     {
         if (string.IsNullOrWhiteSpace(input.Title)) return (false, null, new EmptyTitle());
         if (input.Seasons <= 0) return (false, null, new InvalidSeasons());
@@ -491,12 +491,12 @@ public static class Domain
     }
 }
 
-public interface ISerieRepository
+public interface ITvShowRepository
 {
-    Task<Serie> Save(NewSerie input, CancellationToken ct);
+    Task<TvShow> Save(NewTvShow input, CancellationToken ct);
 }
 
-public static async Task<Serie> CreateSerieUseCase(ISerieRepository repo, NewSerie input, CancellationToken ct)
+public static async Task<TvShow> CreateTvShowUseCase(ITvShowRepository repo, NewTvShow input, CancellationToken ct)
 {
     var validation = Domain.Validate(input);
     if (!validation.Ok) throw new Exception("Domain validation failed");
@@ -511,9 +511,9 @@ Idee: C# utilise surtout `Task`/`async` pour l'asynchrone; on modele souvent les
 
 - En OOP, on cree souvent une instance avec `new` et le constructeur protege les invariants.
 - En FP/data-first, on manipule des objets litteraux, et les invariants sont proteges par des fonctions de creation/validation.
-- Un objet litteral n'est pas "moins serieux" qu'une classe: il devient fiable si toute creation passe par une porte d'entree metier (`createX`, `validateX`).
+- Un objet litteral n'est pas "moins robuste" qu'une classe: il devient fiable si toute creation passe par une porte d'entree metier (`createX`, `validateX`).
 - Sans cette discipline, TypeScript peut etre contourne (`as`, `Partial`, champs optionnels), donc il faut centraliser la creation.
 - `Brand<T, B>` sert a distinguer des valeurs de meme base (`string`, `number`) mais de sens metier different.
 - Les `as` sont acceptables dans les smart constructors, apres validation runtime; a eviter ailleurs.
-- Dans ce projet: `NewSerieInput` (brut) -> `validateNewSerie` -> `ValidatedNewSerie` (sur) -> repository -> `Serie`.
+- Dans ce projet: `NewTvShowInput` (brut) -> `validateNewTvShow` -> `ValidatedTvShow` (sur) -> repository -> `TvShow`.
 - On pense "valeur valide" plutot que "instance de classe": le but est la surete metier, pas le mot-cle `new`.

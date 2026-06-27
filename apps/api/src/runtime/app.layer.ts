@@ -1,9 +1,7 @@
 import { Layer } from "effect";
 
-import { SerieServiceLive } from "../application/serie.service.live.js";
 import { TvShowServiceLive } from "../application/tvshow.service.live.js";
 import { DbClientLive } from "../database/db.service.js";
-import { SerieRepositoryLive } from "../infrastructure/serie.repository.drizzle.js";
 import { TvShowRepositoryLive } from "../infrastructure/tvshow.repository.drizzle.js";
 import { EnvConfigLive } from "./env.service.js";
 
@@ -17,11 +15,8 @@ import { EnvConfigLive } from "./env.service.js";
 export const makeAppLive = () => {
   const DbLive = Layer.provide(DbClientLive, EnvConfigLive);
 
-  const SerieLive = Layer.provide(SerieRepositoryLive, DbLive);
-  const SerieServiceAppLive = Layer.provide(SerieServiceLive, SerieLive);
-
   const TvShowLive = Layer.provide(TvShowRepositoryLive, DbLive);
   const TvShowServiceAppLive = Layer.provide(TvShowServiceLive, TvShowLive);
 
-  return Layer.mergeAll(SerieServiceAppLive, TvShowServiceAppLive);
+  return TvShowServiceAppLive;
 };

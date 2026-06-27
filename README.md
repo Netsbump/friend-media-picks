@@ -51,12 +51,12 @@ Health check:
 curl -i http://localhost:3000/health
 ```
 
-Create a serie:
+Create a tv show:
 
 ```bash
-curl -X POST http://localhost:3000/series \
+curl -X POST http://localhost:3000/tvshows \
   -H "content-type: application/json" \
-  -d '{"title":"Dark","description":"Sci-fi","seasons":3,"producer":"Netflix","releaseAt":"2017-12-01"}'
+  -d '{"name":"Dark","description":"Sci-fi","seasons":3,"episodes":26,"releaseAt":"2017-12-01","directors":[{"firstName":"Baran","lastName":"bo Odar"}],"writers":[{"firstName":"Jantje","lastName":"Friese"}],"stars":[{"firstName":"Louis","lastName":"Hofmann"}],"genres":[{"name":"Sci-fi","description":"Science fiction"}]}'
 ```
 
 ## Useful Commands
@@ -80,7 +80,7 @@ Rules are documented in `AGENTS.md`.
 
 ## Troubleshooting
 
-- If you get `SCHEMA_MISSING` or `relation "series" does not exist`, run:
+- If you get `SCHEMA_MISSING` or a missing table relation error, run:
 
 ```bash
 pnpm --filter @friend-media-picks/api db:migrate

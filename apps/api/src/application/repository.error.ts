@@ -7,7 +7,6 @@ export const RepositoryErrorCode = {
 } as const;
 
 export const RepositoryEntity = {
-  SERIE: "serie",
   TVSHOW: "tvshow",
 } as const;
 
