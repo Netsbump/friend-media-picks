@@ -1,8 +1,8 @@
 import { Context, Effect, Layer } from "effect";
 import type { SqlError } from "@effect/sql/SqlError";
 import { createDrizzleDbClient, type Database } from "./db.client.js";
-import { EnvConfig } from "../infrastructure/config/env.service.js";
-import type { EnvError } from "../infrastructure/config/env.config.js";
+import { EnvConfig } from "../config/env.service.js";
+import type { EnvError } from "../config/env.config.js";
 
 export type DbClientShape = {
   db: Database;
