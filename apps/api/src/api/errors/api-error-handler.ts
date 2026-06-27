@@ -26,16 +26,16 @@ const logError = (error: unknown) =>
   Effect.gen(function* () {
     const apiError = toApiError(error, { includeInternalDetails: isDevelopment });
     yield* Effect.logError(
-      `[HTTP_ERROR] status=${apiError.status} code=${apiError.code} message=${apiError.message}`,
+      `[API_ERROR] status=${apiError.status} code=${apiError.code} message=${apiError.message}`,
     );
     if (isDevelopment && apiError.details) {
-      yield* Effect.logError(`[HTTP_ERROR_DETAILS] ${String(apiError.details)}`);
+      yield* Effect.logError(`[API_ERROR_DETAILS] ${String(apiError.details)}`);
     }
   }).pipe(Effect.orDie);
 
 const logAndRespond = (error: unknown) => logError(error).pipe(Effect.andThen(toResponse(error)));
 
-export const handleHttpErrors = <Success, Requirements>(
+export const catchApiErrors = <Success, Requirements>(
   effect: Effect.Effect<Success, unknown, Requirements>,
 ) =>
   effect.pipe(

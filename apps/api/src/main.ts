@@ -9,7 +9,7 @@ import { DbClientLive } from "./database/db.service.js";
 import { EnvConfigLive } from "./runtime/env.service.js";
 import { SerieServiceLive } from "./application/serie.service.live.js";
 import { TvShowServiceLive } from "./application/tvshow.service.live.js";
-import { app } from "./http/app.js";
+import { app } from "./api/app.js";
 
 const port = Number(process.env.API_PORT ?? 3000);
 
