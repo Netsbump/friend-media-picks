@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "typecheck": "tsc --noEmit --project tsconfig.json",
-    "test": "vitest run",
     "db:generate": "dotenv -e ../../.env -e .env -- drizzle-kit generate --config ./config/drizzle.config.ts",
     "db:migrate": "dotenv -e ../../.env -e .env -- drizzle-kit migrate --config ./config/drizzle.config.ts",
     "db:studio": "dotenv -e ../../.env -e .env -- drizzle-kit studio --config ./config/drizzle.config.ts"
@@ -24,7 +23,6 @@
     "@types/pg": "^8.20.0",
     "dotenv-cli": "^8.0.0",
     "drizzle-kit": "^0.31.10",
-    "drizzle-orm": "1.0.0-beta.22",
-    "vitest": "^2.1.8"
+    "drizzle-orm": "1.0.0-beta.22"
   }
 }
