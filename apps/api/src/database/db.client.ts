@@ -36,7 +36,7 @@ export const createDrizzleDbClient = (connectionString: string) =>
       },
     });
 
-    yield* Effect.logInfo("[BOOT] Effect Postgres client layer created");
+    yield* Effect.logInfo("[STARTUP] Effect Postgres client layer created");
 
     return yield* Effect.provide(PgDrizzle.makeWithDefaults<DbSchema>(), pgClientLayer);
   });

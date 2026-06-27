@@ -41,7 +41,7 @@ export const TvShowRepositoryLive = Layer.effect(
 
     const queries = makeTvShowQueries(db);
 
-    yield* Effect.logInfo("[BOOT] TvShowRepository wired");
+    yield* Effect.logInfo("[STARTUP] TvShowRepository wired");
 
     const hydrateTvShow = (row: TvShowRow) =>
       Effect.gen(function* () {

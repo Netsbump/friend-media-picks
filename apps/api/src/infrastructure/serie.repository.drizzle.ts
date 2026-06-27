@@ -54,7 +54,7 @@ export const SerieRepositoryLive = Layer.effect(
   Effect.gen(function* () {
     const { db } = yield* DbClient;
 
-    yield* Effect.logInfo("[BOOT] SerieRepository wired");
+    yield* Effect.logInfo("[STARTUP] SerieRepository wired");
 
     const findRowById = (serieId: string) =>
       Effect.gen(function* () {

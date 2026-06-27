@@ -6,7 +6,7 @@ import { SerieService } from "./serie.service.js";
 export const SerieServiceLive = Layer.effect(
   SerieService,
   Effect.gen(function* () {
-    yield* Effect.logInfo("[BOOT] SerieService wired");
+    yield* Effect.logInfo("[STARTUP] SerieService wired");
     const serieRepository = yield* SerieRepository;
 
     const getById = (serieId: string) => serieRepository.findById(serieId);

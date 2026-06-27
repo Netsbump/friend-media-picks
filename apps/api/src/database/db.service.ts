@@ -15,10 +15,10 @@ export const DbClientLive: Layer.Layer<DbClient, SqlError | EnvError, EnvConfig>
   Effect.gen(function* () {
     const { env } = yield* EnvConfig;
     yield* Effect.logInfo(
-      `[BOOT] Creating DB client for ${env.postgres.host}:${env.postgres.port}`,
+      `[STARTUP] Creating DB client for ${env.postgres.host}:${env.postgres.port}`,
     );
     const db = yield* createDrizzleDbClient(env.databaseUrl);
-    yield* Effect.logInfo("[BOOT] Drizzle DB client ready");
+    yield* Effect.logInfo("[STARTUP] Drizzle DB client ready");
 
     return { db };
   }),

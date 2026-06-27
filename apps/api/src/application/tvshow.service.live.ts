@@ -6,7 +6,7 @@ import { TvShowRepository } from "./tvshow.repository.js";
 export const TvShowServiceLive = Layer.effect(
   TvShowService,
   Effect.gen(function* () {
-    yield* Effect.logInfo("[BOOT] TvShowService wired");
+    yield* Effect.logInfo("[STARTUP] TvShowService wired");
 
     const tvShowRepository = yield* TvShowRepository;
 
