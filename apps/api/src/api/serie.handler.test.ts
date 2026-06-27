@@ -52,11 +52,14 @@ describe("serie handlers", () => {
     expect(exit._tag).toBe("Failure");
   });
 
-  it("getSerieHandler returns serie with repository layer", async () => {
+  it("getSerieHandler returns serie api response with repository layer", async () => {
     const program = getSerieHandler("serie-1").pipe(Effect.provide(appLayer));
 
     const result = await Effect.runPromise(program);
 
-    expect(result).toEqual(sampleSerie);
+    expect(result).toEqual({
+      ...sampleSerie,
+      releaseAt: releaseAt.toISOString(),
+    });
   });
 });

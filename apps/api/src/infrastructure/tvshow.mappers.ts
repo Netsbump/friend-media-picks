@@ -43,11 +43,18 @@ export const toDirectorDomain = (person: PersonProjection): Director => ({
   lastName: person.lastName,
 });
 
+export const toDirectorsDomain = (
+  directors: ReadonlyArray<PersonProjection>,
+): ReadonlyArray<Director> => directors.map((director) => toDirectorDomain(director));
+
 export const toWriterDomain = (person: PersonProjection): Writer => ({
   id: person.id,
   firstName: person.firstName,
   lastName: person.lastName,
 });
+
+export const toWritersDomain = (writers: ReadonlyArray<PersonProjection>): ReadonlyArray<Writer> =>
+  writers.map((writer) => toWriterDomain(writer));
 
 export const toStarDomain = (person: PersonProjection): Star => ({
   id: person.id,
@@ -55,11 +62,17 @@ export const toStarDomain = (person: PersonProjection): Star => ({
   lastName: person.lastName,
 });
 
+export const toStarsDomain = (stars: ReadonlyArray<PersonProjection>): ReadonlyArray<Star> =>
+  stars.map((star) => toStarDomain(star));
+
 export const toGenreDomain = (genre: GenreProjection): Genre => ({
   id: genre.id,
   name: genre.name,
   description: genre.description,
 });
+
+export const toGenresDomain = (genres: ReadonlyArray<GenreProjection>): ReadonlyArray<Genre> =>
+  genres.map((genre) => toGenreDomain(genre));
 
 export const toTvShowDomain = (
   row: TvShowRow,

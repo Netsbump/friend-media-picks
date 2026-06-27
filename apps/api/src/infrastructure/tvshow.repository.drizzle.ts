@@ -2,12 +2,12 @@ import { Effect, Layer } from "effect";
 import type { ValidatedTvShow } from "../domain/tvshow.js";
 import type { TvShowRow } from "../database/schemas/tvshow.schema.js";
 import {
-  toDirectorDomain,
-  toGenreDomain,
-  toStarDomain,
+  toDirectorsDomain,
+  toGenresDomain,
+  toStarsDomain,
   toTvShowDomain,
   toTvShowInsert,
-  toWriterDomain,
+  toWritersDomain,
 } from "./tvshow.mappers.js";
 import { makeTvShowQueries } from "./tvshow.queries.js";
 import {
@@ -56,12 +56,18 @@ export const TvShowRepositoryLive = Layer.effect(
         );
 
         return toTvShowDomain(row, {
-          directors: directorRows.map((d) => toDirectorDomain(d)),
-          writers: writerRows.map((w) => toWriterDomain(w)),
-          stars: starRows.map((s) => toStarDomain(s)),
-          genres: genreRows.map((g) => toGenreDomain(g)),
+          directors: toDirectorsDomain(directorRows),
+          writers: toWritersDomain(writerRows),
+          stars: toStarsDomain(starRows),
+          genres: toGenresDomain(genreRows),
         });
       });
+
+    const hydrateTvShows = (rows: ReadonlyArray<TvShowRow>) =>
+      Effect.all(
+        rows.map((row) => hydrateTvShow(row)),
+        { concurrency: TV_SHOW_HYDRATION_CONCURRENCY },
+      );
 
     const findRowById = (tvShowId: string) =>
       Effect.gen(function* () {
@@ -153,10 +159,7 @@ export const TvShowRepositoryLive = Layer.effect(
         Effect.gen(function* () {
           const rows = yield* findRows();
           const tvShows = yield* Effect.mapError(
-            Effect.all(
-              rows.map((row) => hydrateTvShow(row)),
-              { concurrency: TV_SHOW_HYDRATION_CONCURRENCY },
-            ),
+            hydrateTvShows(rows),
             toRepoError(RepositoryOperation.FIND_ALL),
           );
 

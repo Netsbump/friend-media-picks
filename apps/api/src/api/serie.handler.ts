@@ -1,8 +1,8 @@
 import { Effect } from "effect";
 import * as Schema from "effect/Schema";
 import { SerieService } from "../application/serie.service.js";
-import type { Serie } from "../domain/serie.js";
 import { SchemaValidationError } from "./errors/schema-validation-error.js";
+import { toSerieApiResponse } from "./serie.mappers.js";
 
 const decodeOrValidationError =
   <Output, Input>(schema: Schema.Schema<Output, Input>) =>
@@ -21,8 +21,6 @@ const createSerieSchema = Schema.Struct({
 
 const decodeCreateSerieRequest = decodeOrValidationError(createSerieSchema);
 
-const mapToClientShape = (serie: Serie): Serie => serie;
-
 export const createSerieHandler = (input: unknown) =>
   Effect.gen(function* () {
     const parsedSerie = yield* decodeCreateSerieRequest(input);
@@ -31,7 +29,7 @@ export const createSerieHandler = (input: unknown) =>
 
     const serie = yield* serieService.create(parsedSerie);
 
-    return mapToClientShape(serie);
+    return toSerieApiResponse(serie);
   });
 
 const getSerieSchema = Schema.Struct({
@@ -48,5 +46,5 @@ export const getSerieHandler = (id: string) =>
 
     const serie = yield* serieService.getById(parsedId.id);
 
-    return mapToClientShape(serie);
+    return toSerieApiResponse(serie);
   });

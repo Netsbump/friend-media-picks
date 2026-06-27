@@ -1,8 +1,8 @@
 import { Effect } from "effect";
 import * as Schema from "effect/Schema";
 import { TvShowService } from "../application/tvshow.service.js";
-import type { TvShow } from "../domain/tvshow.js";
 import { SchemaValidationError } from "./errors/schema-validation-error.js";
+import { toTvShowApiResponse, toTvShowsApiResponse } from "./tvshow.mappers.js";
 
 const personSchema = Schema.Struct({
   firstName: Schema.String,
@@ -54,8 +54,6 @@ const decodeTvShowIdParam = (id: string) => {
   );
 };
 
-const mapToClientShape = (tvShow: TvShow): TvShow => tvShow;
-
 export const createTvShowHandler = (input: unknown) =>
   Effect.gen(function* () {
     const parsedTvShow = yield* decodeCreateTvShowRequest(input);
@@ -64,7 +62,7 @@ export const createTvShowHandler = (input: unknown) =>
 
     const tvShow = yield* tvShowService.create(parsedTvShow);
 
-    return mapToClientShape(tvShow);
+    return toTvShowApiResponse(tvShow);
   });
 
 export const getTvShowHandler = (id: string) =>
@@ -75,12 +73,14 @@ export const getTvShowHandler = (id: string) =>
 
     const tvShow = yield* tvShowService.getOne(parsedId.id);
 
-    return mapToClientShape(tvShow);
+    return toTvShowApiResponse(tvShow);
   });
 
 export const getTvShowsHandler = () =>
   Effect.gen(function* () {
     const tvShowService = yield* TvShowService;
 
-    return yield* tvShowService.getAll();
+    const tvShows = yield* tvShowService.getAll();
+
+    return toTvShowsApiResponse(tvShows);
   });
