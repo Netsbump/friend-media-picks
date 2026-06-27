@@ -26,6 +26,12 @@ type TaggedError = {
 const isTaggedError = (error: unknown): error is TaggedError =>
   Boolean(error && typeof error === "object" && "_tag" in error);
 
+/**
+ * Converts internal application failures into API-safe errors.
+ *
+ * Known tagged errors are mapped to stable client-facing status codes and error
+ * codes. Unknown errors are intentionally hidden behind a generic 500 response.
+ */
 export const toApiError = (
   error: unknown,
   options?: { includeInternalDetails?: boolean },

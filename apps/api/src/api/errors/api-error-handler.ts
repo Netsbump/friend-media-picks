@@ -8,9 +8,9 @@ import type { SchemaValidationError } from "./schema-validation-error.js";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 
-const toResponse = (error: unknown) => {
-  // Convert domain/infrastructure failures into API-safe payloads.
+const toHttpResponse = (error: unknown) => {
   const apiError = toApiError(error, { includeInternalDetails: isDevelopment });
+
   return HttpServerResponse.json(
     {
       code: apiError.code,
@@ -22,18 +22,23 @@ const toResponse = (error: unknown) => {
 };
 
 const logError = (error: unknown) =>
-  // Logging must not fail the request pipeline.
   Effect.gen(function* () {
     const apiError = toApiError(error, { includeInternalDetails: isDevelopment });
+
     yield* Effect.logError(
       `[API_ERROR] status=${apiError.status} code=${apiError.code} message=${apiError.message}`,
     );
+
     if (isDevelopment && apiError.details) {
       yield* Effect.logError(`[API_ERROR_DETAILS] ${String(apiError.details)}`);
     }
-  }).pipe(Effect.orDie);
+  });
 
-const logAndRespond = (error: unknown) => logError(error).pipe(Effect.andThen(toResponse(error)));
+const logAndRespond = (error: unknown) =>
+  Effect.gen(function* () {
+    yield* logError(error);
+    return yield* toHttpResponse(error);
+  });
 
 export const catchApiErrors = <Success, Requirements>(
   effect: Effect.Effect<Success, unknown, Requirements>,
