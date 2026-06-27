@@ -9,7 +9,7 @@ const env = Effect.runSync(loadEnv);
 
 export default defineConfig({
   out: "./src/database/migrations",
-  schema: "./src/infrastructure/**/*.schema.ts",
+  schema: "./src/database/schemas/**/*.schema.ts",
   dialect: "postgresql",
   dbCredentials: {
     url: env.databaseUrl,

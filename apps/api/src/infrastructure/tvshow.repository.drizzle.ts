@@ -1,6 +1,6 @@
 import { Effect, Layer } from "effect";
 import type { ValidatedTvShow } from "../domain/tvshow.js";
-import type { TvShowRow } from "./schemas/tvshow.schema.js";
+import type { TvShowRow } from "../database/schemas/tvshow.schema.js";
 import {
   toDirectorDomain,
   toGenreDomain,
