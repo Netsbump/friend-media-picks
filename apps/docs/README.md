@@ -1,9 +1,5 @@
 # Notes d'apprentissage : FP + Effect TS
 
-Documents complémentaires :
-
-- [Effect, Drizzle et transactions](./effect-drizzle-transactions.md)
-
 Ce document sert de prise de notes pour comprendre les bases de la programmation fonctionnelle (FP) et leur
 application avec Effect TS.
 
@@ -14,6 +10,41 @@ application avec Effect TS.
 - **Composition**: on prefere assembler de petites fonctions simples.
 - **Donnees explicites**: on modelise le domaine avec des types clairs.
 - **Erreurs explicites**: on evite le throw implicite dans la logique metier.
+
+## 1.1) FP vs OOP: ou sont les barrieres ?
+
+La FP et l'OOP n'organisent pas les frontieres de la meme facon.
+
+En OOP, notamment en .NET, on structure souvent le code autour d'objets, de classes et de mots-cles comme
+`private`, `public`, `internal` ou `sealed`. Ces outils servent a controler qui peut construire, modifier,
+heriter ou appeler certaines parties du code.
+
+En FP, on structure plutot le code autour de donnees, de fonctions et de modules. Les barrieres principales sont
+donc differentes:
+
+- **Modules**: ce qui n'est pas exporte reste interne au fichier/module.
+- **Fonctions de creation/validation**: elles controlent comment une valeur metier valide est construite.
+- **Immutabilite**: une valeur valide n'est pas modifiee en place ensuite.
+- **Types explicites**: on distingue les donnees brutes des donnees validees.
+- **Erreurs comme valeurs**: les erreurs attendues peuvent etre modelisees avec `Result`, `Either`, `Option`,
+  des unions discriminees ou des ADT selon le langage.
+- **Dependances explicites**: elles peuvent etre passees en parametre, capturees dans une closure, modelisees via
+  un Reader pattern, un environnement type, des modules, etc.
+
+Un invariant metier est une regle qui doit rester vraie pour qu'une donnee soit valide. Par exemple: `seasons > 0`,
+un email non vide et bien forme, ou une date dans un format attendu. L'immutabilite aide a conserver cet invariant
+apres validation, mais elle ne le garantit pas seule. La garantie vient surtout de la porte d'entree: une fonction
+de creation/validation que le reste du code utilise au lieu de construire la valeur librement.
+
+Avec Effect TS, certaines idees FP prennent une forme concrete:
+
+- `Effect<A, E, R>` rend explicites le succes `A`, l'erreur attendue `E` et les dependances `R`.
+- `Context.Tag` decrit un service requis par le programme.
+- `Layer` fournit une implementation concrete de ce service.
+
+Dans ce projet, la regle pratique est: exporter l'API utile, garder les helpers internes non exportes, centraliser
+la validation metier, eviter les casts (`as`) hors des fonctions de validation, et ne pas laisser les details
+d'infrastructure remonter dans le domaine.
 
 ## 2) C'est quoi Effect TS ?
 
@@ -95,7 +126,26 @@ Exemple actuel:
 - `DbClientLive` construit ce service.
 - `TvShowRepositoryLive` depend du service `DbClient` (abstraction), et au runtime on lui fournit `DbClientLive` (implementation).
 
-## 5) Clean Architecture adaptee en FP pragmatique
+## 5) Architecture du projet: DDD, Hexagonal et FP pragmatique
+
+Le projet utilise un melange pragmatique de plusieurs idees:
+
+- DDD pour modeliser le domaine metier;
+- Architecture hexagonale pour separer le coeur applicatif des entrees/sorties externes;
+- Functional core / imperative shell pour garder les regles metier pures et repousser les effets de bord vers les bords;
+- Effect TS pour typer les erreurs, les dependances et controler l'execution des effets.
+
+Ces approches sont compatibles, mais elles ne repondent pas exactement a la meme question:
+
+- DDD repond a: "quel est le modele metier ?";
+- Hexagonal repond a: "comment le coeur applicatif parle au monde exterieur sans dependre de ses details ?";
+- Functional core / imperative shell repond a: "ou placer les effets de bord ?";
+- Effect TS repond a: "comment representer et executer ces programmes de facon typee ?".
+
+L'architecture hexagonale n'est pas reservee a l'OOP. En OOP, les ports sont souvent des interfaces implementees
+par des classes. En FP, un port peut etre un type, une fonction, un record de fonctions, un module ou un service
+dans un environnement. Avec Effect TS, on represente ces ports avec `Context.Tag` et on fournit les implementations
+avec `Layer`.
 
 Objectif: conserver des frontieres claires, mais reduire les abstractions sans valeur immediate.
 

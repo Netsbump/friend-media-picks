@@ -110,9 +110,9 @@ pnpm --filter @friend-media-picks/server db:migrate
 
 ## Learning Notes
 
-Additional learning documentation is available in `apps/documentations/`:
+Additional learning documentation is available in `apps/docs/`:
 
-- `apps/documentations/README.md`: FP + Effect TS learning notes (French)
-- `apps/documentations/TODO.md`: implementation roadmap
+- `apps/docs/README.md`: FP + Effect TS learning notes (French)
+- `apps/docs/TODO.md`: implementation roadmap
 
 Note: architecture visualization/generation in Markdown is planned and tracked in the TODO file.
