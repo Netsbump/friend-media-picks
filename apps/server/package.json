@@ -1,5 +1,5 @@
 {
-  "name": "@friend-media-picks/api",
+  "name": "@friend-media-picks/server",
   "version": "1.0.0",
   "private": true,
   "type": "module",

@@ -33,11 +33,11 @@ pnpm docker:up
 3. Generate and apply database migrations:
 
 ```bash
-pnpm --filter @friend-media-picks/api db:generate
-pnpm --filter @friend-media-picks/api db:migrate
+pnpm --filter @friend-media-picks/server db:generate
+pnpm --filter @friend-media-picks/server db:migrate
 ```
 
-4. Start the API:
+4. Start the server:
 
 ```bash
 pnpm dev
@@ -73,7 +73,7 @@ The OpenAPI spec is available at:
 http://localhost:3000/openapi.json
 ```
 
-Start the API first:
+Start the server first:
 
 ```bash
 pnpm dev
@@ -81,13 +81,13 @@ pnpm dev
 
 ## Useful Commands
 
-- Start API in dev: `pnpm dev`
+- Start server in dev: `pnpm dev`
 - Typecheck: `pnpm typecheck`
 - Start Docker services: `pnpm docker:up`
 - Stop Docker services: `pnpm docker:down`
-- DB migration generate: `pnpm --filter @friend-media-picks/api db:generate`
-- DB migrate: `pnpm --filter @friend-media-picks/api db:migrate`
-- DB Studio: `pnpm --filter @friend-media-picks/api db:studio`
+- DB migration generate: `pnpm --filter @friend-media-picks/server db:generate`
+- DB migrate: `pnpm --filter @friend-media-picks/server db:migrate`
+- DB Studio: `pnpm --filter @friend-media-picks/server db:studio`
 
 ## Vendored Sources for Agents
 
@@ -103,7 +103,7 @@ Rules are documented in `AGENTS.md`.
 - If you get `SCHEMA_MISSING` or a missing table relation error like `relation "tv_shows" does not exist`, run:
 
 ```bash
-pnpm --filter @friend-media-picks/api db:migrate
+pnpm --filter @friend-media-picks/server db:migrate
 ```
 
 - If DB connection fails, check PostgreSQL is running and your `.env` values.

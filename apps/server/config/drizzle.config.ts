@@ -4,7 +4,7 @@ import { Effect } from "effect";
 import { loadEnv } from "../src/runtime/env.config.js";
 
 // This file is used by Drizzle Kit CLI commands only (generate/migrate/studio).
-// Runtime API database wiring is configured in src/database.
+// Runtime server database wiring is configured in src/database.
 const env = Effect.runSync(loadEnv);
 
 export default defineConfig({

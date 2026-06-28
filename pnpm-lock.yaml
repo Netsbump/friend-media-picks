@@ -27,7 +27,7 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
-  apps/api:
+  apps/server:
     dependencies:
       '@effect/platform':
         specifier: ^0.96.1
