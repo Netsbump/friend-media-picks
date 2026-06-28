@@ -59,6 +59,26 @@ curl -X POST http://localhost:3000/tvshows \
   -d '{"name":"Dark","description":"Sci-fi","seasons":3,"episodes":26,"releaseAt":"2017-12-01","directors":[{"firstName":"Baran","lastName":"bo Odar"}],"writers":[{"firstName":"Jantje","lastName":"Friese"}],"stars":[{"firstName":"Louis","lastName":"Hofmann"}],"genres":[{"name":"Sci-fi","description":"Science fiction"}]}'
 ```
 
+## API Documentation
+
+The API exposes interactive Scalar documentation in the browser:
+
+```txt
+http://localhost:3000/docs
+```
+
+The OpenAPI spec is available at:
+
+```txt
+http://localhost:3000/openapi.json
+```
+
+Start the API first:
+
+```bash
+pnpm dev
+```
+
 ## Useful Commands
 
 - Start API in dev: `pnpm dev`

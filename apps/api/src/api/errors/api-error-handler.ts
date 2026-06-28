@@ -5,10 +5,20 @@ import type { RepositoryError } from "../../application/repository.error.js";
 import { toApiError } from "./api-error.js";
 import type { SchemaValidationError } from "../tvshow.handler.js";
 
-const isDevelopment = process.env.NODE_ENV === "development";
+const isDevelopment = () => process.env.NODE_ENV === "development";
+
+const stringifyDetails = (details: unknown): string => {
+  if (typeof details === "string") return details;
+
+  try {
+    return JSON.stringify(details);
+  } catch {
+    return String(details);
+  }
+};
 
 const toHttpResponse = (error: unknown) => {
-  const apiError = toApiError(error, { includeInternalDetails: isDevelopment });
+  const apiError = toApiError(error, { includeInternalDetails: isDevelopment() });
 
   return HttpServerResponse.json(
     {
@@ -22,14 +32,14 @@ const toHttpResponse = (error: unknown) => {
 
 const logError = (error: unknown) =>
   Effect.gen(function* () {
-    const apiError = toApiError(error, { includeInternalDetails: isDevelopment });
+    const apiError = toApiError(error, { includeInternalDetails: isDevelopment() });
 
     yield* Effect.logError(
       `[API_ERROR] status=${apiError.status} code=${apiError.code} message=${apiError.message}`,
     );
 
-    if (isDevelopment && apiError.details) {
-      yield* Effect.logError(`[API_ERROR_DETAILS] ${String(apiError.details)}`);
+    if (isDevelopment() && apiError.details) {
+      yield* Effect.logError(`[API_ERROR_DETAILS] ${stringifyDetails(apiError.details)}`);
     }
   });
 
