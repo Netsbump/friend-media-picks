@@ -2,7 +2,7 @@ import { Layer } from "effect";
 import { DbClientLive } from "../database/db.service.js";
 import { TvShowRepositoryLive } from "../tvshow/infrastructure/tvshow.repository.drizzle.js";
 import { EnvConfigLive } from "./env.service.js";
-import { TvShowServiceLive } from "../tvshow/application/tvshow.service.live.js";
+import { TvShowCatalogLive } from "../tvshow/application/tvshow.catalog.live.js";
 
 /**
  * Builds the production dependency graph for the API.
@@ -15,7 +15,7 @@ export const makeAppLive = () => {
   const DbLive = Layer.provide(DbClientLive, EnvConfigLive);
 
   const TvShowLive = Layer.provide(TvShowRepositoryLive, DbLive);
-  const TvShowServiceAppLive = Layer.provide(TvShowServiceLive, TvShowLive);
+  const TvShowCatalogAppLive = Layer.provide(TvShowCatalogLive, TvShowLive);
 
-  return TvShowServiceAppLive;
+  return TvShowCatalogAppLive;
 };

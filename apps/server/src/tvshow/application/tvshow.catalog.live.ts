@@ -1,16 +1,16 @@
 import { Effect, Layer } from "effect";
-import { TvShowService } from "./tvshow.service.js";
+import { TvShowCatalog } from "./tvshow.catalog.js";
 import { validateNewTvShow, type NewTvShowInput } from "../domain/tvshow.js";
 import { TvShowRepository } from "./tvshow.repository.js";
 
-export const TvShowServiceLive = Layer.effect(
-  TvShowService,
+export const TvShowCatalogLive = Layer.effect(
+  TvShowCatalog,
   Effect.gen(function* () {
-    yield* Effect.logInfo("[STARTUP] TvShowService wired");
+    yield* Effect.logInfo("[STARTUP] TvShowCatalog wired");
 
     const tvShowRepository = yield* TvShowRepository;
 
-    const create = (newTvShow: NewTvShowInput) =>
+    const add = (newTvShow: NewTvShowInput) =>
       Effect.gen(function* () {
         const validatedResult = validateNewTvShow(newTvShow);
 
@@ -21,14 +21,14 @@ export const TvShowServiceLive = Layer.effect(
         return yield* tvShowRepository.save(validatedResult.value);
       });
 
-    const getOne = (tvShowId: string) => tvShowRepository.findById(tvShowId);
+    const getById = (tvShowId: string) => tvShowRepository.findById(tvShowId);
 
-    const getAll = () => tvShowRepository.findAll();
+    const list = () => tvShowRepository.findAll();
 
     return {
-      create,
-      getOne,
-      getAll,
+      add,
+      getById,
+      list,
     };
   }),
 );

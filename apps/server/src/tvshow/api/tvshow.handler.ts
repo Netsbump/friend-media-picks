@@ -1,6 +1,6 @@
 import { Data, Effect } from "effect";
 import * as Schema from "effect/Schema";
-import { TvShowService } from "../application/tvshow.service.js";
+import { TvShowCatalog } from "../application/tvshow.catalog.js";
 import { toTvShowApiResponse, toTvShowsApiResponse } from "./tvshow.mappers.js";
 
 export class SchemaValidationError extends Data.TaggedError("SchemaValidationError")<{
@@ -61,9 +61,9 @@ export const createTvShowHandler = (input: unknown) =>
   Effect.gen(function* () {
     const parsedTvShow = yield* decodeCreateTvShowRequest(input);
 
-    const tvShowService = yield* TvShowService;
+    const tvShowCatalog = yield* TvShowCatalog;
 
-    const tvShow = yield* tvShowService.create(parsedTvShow);
+    const tvShow = yield* tvShowCatalog.add(parsedTvShow);
 
     return toTvShowApiResponse(tvShow);
   });
@@ -72,18 +72,18 @@ export const getTvShowHandler = (id: string) =>
   Effect.gen(function* () {
     const parsedId = yield* decodeTvShowIdParam(id);
 
-    const tvShowService = yield* TvShowService;
+    const tvShowCatalog = yield* TvShowCatalog;
 
-    const tvShow = yield* tvShowService.getOne(parsedId.id);
+    const tvShow = yield* tvShowCatalog.getById(parsedId.id);
 
     return toTvShowApiResponse(tvShow);
   });
 
 export const getTvShowsHandler = () =>
   Effect.gen(function* () {
-    const tvShowService = yield* TvShowService;
+    const tvShowCatalog = yield* TvShowCatalog;
 
-    const tvShows = yield* tvShowService.getAll();
+    const tvShows = yield* tvShowCatalog.list();
 
     return toTvShowsApiResponse(tvShows);
   });
