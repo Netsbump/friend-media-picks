@@ -4,9 +4,9 @@ import type { ValidatedDirector } from "../domain/director.js";
 import type { ValidatedGenre } from "../domain/genre.js";
 import type { ValidatedStar } from "../domain/star.js";
 import type { ValidatedWriter } from "../domain/writer.js";
-import type { Database } from "../database/db.client.js";
-import { genres, type GenreRow } from "../database/schemas/genre.schema.js";
-import { persons, type PersonRow } from "../database/schemas/person.schema.js";
+import type { Database } from "../../database/db.client.js";
+import { genres, type GenreRow } from "../../database/schemas/genre.schema.js";
+import { persons, type PersonRow } from "../../database/schemas/person.schema.js";
 import {
   tvShowDirectors,
   tvShowGenres,
@@ -14,7 +14,7 @@ import {
   tvShowStars,
   tvShowWriters,
   type TvShowInsert,
-} from "../database/schemas/tvshow.schema.js";
+} from "../../database/schemas/tvshow.schema.js";
 import { toGenreInsert, toPersonInsert } from "./tvshow.mappers.js";
 
 type TvShowQueryExecutor = Pick<Database, "insert" | "select">;

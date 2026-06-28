@@ -10,9 +10,9 @@ import {
   type ValidatedTvShow,
 } from "../domain/tvshow.js";
 import type { ValidatedWriter, Writer } from "../domain/writer.js";
-import type { GenreInsert, GenreRow } from "../database/schemas/genre.schema.js";
-import type { PersonInsert, PersonRow } from "../database/schemas/person.schema.js";
-import type { TvShowInsert, TvShowRow } from "../database/schemas/tvshow.schema.js";
+import type { GenreInsert, GenreRow } from "../../database/schemas/genre.schema.js";
+import type { PersonInsert, PersonRow } from "../../database/schemas/person.schema.js";
+import type { TvShowInsert, TvShowRow } from "../../database/schemas/tvshow.schema.js";
 
 export type PersonProjection = Pick<PersonRow, "id" | "firstName" | "lastName">;
 export type GenreProjection = Pick<GenreRow, "id" | "name" | "description">;

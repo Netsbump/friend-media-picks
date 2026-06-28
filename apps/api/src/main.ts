@@ -2,7 +2,7 @@ import { HttpServer } from "@effect/platform";
 import { NodeHttpServer, NodeRuntime } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
 import { createServer } from "node:http";
-import { apiRouter } from "./api/router.js";
+import { apiRouter } from "./tvshow/api/router.js";
 import { makeAppLive } from "./runtime/app.layer.js";
 import { makeStartupLogs } from "./runtime/startup-logs.js";
 

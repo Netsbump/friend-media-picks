@@ -1,9 +1,8 @@
 import { Layer } from "effect";
-
-import { TvShowServiceLive } from "../application/tvshow.service.live.js";
 import { DbClientLive } from "../database/db.service.js";
-import { TvShowRepositoryLive } from "../infrastructure/tvshow.repository.drizzle.js";
+import { TvShowRepositoryLive } from "../tvshow/infrastructure/tvshow.repository.drizzle.js";
 import { EnvConfigLive } from "./env.service.js";
+import { TvShowServiceLive } from "../tvshow/application/tvshow.service.live.js";
 
 /**
  * Builds the production dependency graph for the API.

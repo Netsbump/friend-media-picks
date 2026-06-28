@@ -1,6 +1,6 @@
 import { Effect, Layer } from "effect";
 import type { ValidatedTvShow } from "../domain/tvshow.js";
-import type { TvShowRow } from "../database/schemas/tvshow.schema.js";
+import type { TvShowRow } from "../../database/schemas/tvshow.schema.js";
 import {
   toDirectorsDomain,
   toGenresDomain,
@@ -17,7 +17,7 @@ import {
   RepositoryOperation,
 } from "../application/repository.error.js";
 import { TvShowRepository } from "../application/tvshow.repository.js";
-import { DbClient } from "../database/db.service.js";
+import { DbClient } from "../../database/db.service.js";
 
 // Avoid flooding the database when hydrating many rows.
 const TV_SHOW_HYDRATION_CONCURRENCY = 10;
