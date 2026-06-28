@@ -43,41 +43,21 @@ pnpm --filter @friend-media-picks/server db:migrate
 pnpm dev
 ```
 
-## Validate the API
-
-Health check:
-
-```bash
-curl -i http://localhost:3000/health
-```
-
-Create a tv show:
-
-```bash
-curl -X POST http://localhost:3000/tvshows \
-  -H "content-type: application/json" \
-  -d '{"name":"Dark","description":"Sci-fi","seasons":3,"episodes":26,"releaseAt":"2017-12-01","directors":[{"firstName":"Baran","lastName":"bo Odar"}],"writers":[{"firstName":"Jantje","lastName":"Friese"}],"stars":[{"firstName":"Louis","lastName":"Hofmann"}],"genres":[{"name":"Sci-fi","description":"Science fiction"}]}'
-```
-
 ## API Documentation
 
-The API exposes interactive Scalar documentation in the browser:
+Start the server first and then interactive Scalar documentation is available at:
 
 ```txt
 http://localhost:3000/docs
 ```
 
-The OpenAPI spec is available at:
+The generated OpenAPI document is available at:
 
 ```txt
 http://localhost:3000/openapi.json
 ```
 
-Start the server first:
-
-```bash
-pnpm dev
-```
+The OpenAPI document is generated from the Effect `HttpApi` contract declared in the server API layer.
 
 ## Useful Commands
 
@@ -113,6 +93,3 @@ pnpm --filter @friend-media-picks/server db:migrate
 Additional learning documentation is available in `apps/docs/`:
 
 - `apps/docs/README.md`: FP + Effect TS learning notes (French)
-- `apps/docs/TODO.md`: implementation roadmap
-
-Note: architecture visualization/generation in Markdown is planned and tracked in the TODO file.

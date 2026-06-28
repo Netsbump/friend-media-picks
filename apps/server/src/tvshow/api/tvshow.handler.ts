@@ -1,21 +1,12 @@
 import { Data, Effect } from "effect";
 import * as Schema from "effect/Schema";
 import { TvShowCatalog } from "../application/tvshow.catalog.js";
+import { GenreInput, PersonInput, TvShowIdPathParams } from "./tvshow.api.schemas.js";
 import { toTvShowApiResponse, toTvShowsApiResponse } from "./tvshow.mappers.js";
 
 export class SchemaValidationError extends Data.TaggedError("SchemaValidationError")<{
   details: string;
 }> {}
-
-const personSchema = Schema.Struct({
-  firstName: Schema.String,
-  lastName: Schema.String,
-});
-
-const genreSchema = Schema.Struct({
-  name: Schema.String,
-  description: Schema.String,
-});
 
 const createTvShowSchema = Schema.Struct({
   name: Schema.String,
@@ -23,14 +14,10 @@ const createTvShowSchema = Schema.Struct({
   seasons: Schema.Number,
   episodes: Schema.Number,
   releaseAt: Schema.DateFromString,
-  directors: Schema.Array(personSchema),
-  writers: Schema.Array(personSchema),
-  stars: Schema.Array(personSchema),
-  genres: Schema.Array(genreSchema),
-});
-
-const idSchema = Schema.Struct({
-  id: Schema.String,
+  directors: Schema.Array(PersonInput),
+  writers: Schema.Array(PersonInput),
+  stars: Schema.Array(PersonInput),
+  genres: Schema.Array(GenreInput),
 });
 
 const decodeCreateTvShowRequest = (input: unknown) => {
@@ -46,7 +33,7 @@ const decodeCreateTvShowRequest = (input: unknown) => {
 };
 
 const decodeTvShowIdParam = (id: string) => {
-  const decodedInput = Schema.decodeUnknown(idSchema)({ id });
+  const decodedInput = Schema.decodeUnknown(TvShowIdPathParams)({ id });
 
   return decodedInput.pipe(
     Effect.mapError((error) => {
