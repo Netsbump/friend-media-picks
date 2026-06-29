@@ -5,41 +5,47 @@ export const PersonInput = Schema.Struct({
   firstName: Schema.String,
   lastName: Schema.String,
 }).annotations({ identifier: "PersonInput" });
+export type PersonInput = Schema.Schema.Type<typeof PersonInput>;
 
 export const GenreInput = Schema.Struct({
   name: Schema.String,
   description: Schema.String,
 }).annotations({ identifier: "GenreInput" });
+export type GenreInput = Schema.Schema.Type<typeof GenreInput>;
 
-export const CreateTvShowRequest = Schema.Struct({
+export const CreateTvShowInput = Schema.Struct({
   name: Schema.String,
   description: Schema.String,
   seasons: Schema.Number,
   episodes: Schema.Number,
-  releaseAt: Schema.String,
+  releaseAt: Schema.DateFromString,
   directors: Schema.Array(PersonInput),
   writers: Schema.Array(PersonInput),
   stars: Schema.Array(PersonInput),
   genres: Schema.Array(GenreInput),
-}).annotations({ identifier: "CreateTvShowRequest" });
+}).annotations({ identifier: "CreateTvShowInput" });
+export type CreateTvShowInput = Schema.Schema.Type<typeof CreateTvShowInput>;
 
 export const TvShowIdPathParams = Schema.Struct({
   id: Schema.String,
 }).annotations({ identifier: "TvShowIdPathParams" });
+export type TvShowIdPathParams = Schema.Schema.Type<typeof TvShowIdPathParams>;
 
 export const PersonResponse = Schema.Struct({
   id: Schema.String,
   firstName: Schema.String,
   lastName: Schema.String,
 }).annotations({ identifier: "PersonResponse" });
+export type PersonResponse = Schema.Schema.Type<typeof PersonResponse>;
 
 export const GenreResponse = Schema.Struct({
   id: Schema.String,
   name: Schema.String,
   description: Schema.String,
 }).annotations({ identifier: "GenreResponse" });
+export type GenreResponse = Schema.Schema.Type<typeof GenreResponse>;
 
-export const TvShowResponse = Schema.Struct({
+export const TvShowApiResponse = Schema.Struct({
   id: Schema.String,
   name: Schema.String,
   description: Schema.String,
@@ -50,18 +56,19 @@ export const TvShowResponse = Schema.Struct({
   writers: Schema.Array(PersonResponse),
   stars: Schema.Array(PersonResponse),
   genres: Schema.Array(GenreResponse),
-}).annotations({ identifier: "TvShowResponse" });
+}).annotations({ identifier: "TvShowApiResponse" });
+export type TvShowApiResponse = Schema.Schema.Type<typeof TvShowApiResponse>;
 
-export const TvShowsResponse = Schema.Array(TvShowResponse).annotations({
-  identifier: "TvShowsResponse",
+export const TvShowsApiResponse = Schema.Array(TvShowApiResponse).annotations({
+  identifier: "TvShowsApiResponse",
 });
+export type TvShowsApiResponse = Schema.Schema.Type<typeof TvShowsApiResponse>;
 
-export const CreatedTvShowResponse = TvShowResponse.annotations(
+export const CreatedTvShowApiResponse = TvShowApiResponse.annotations(
   HttpApiSchema.annotations({ status: 201 }),
 );
 
 export const HealthResponse = Schema.Struct({
   status: Schema.Literal("ok"),
 }).annotations({ identifier: "HealthResponse" });
-
-export type CreateTvShowRequest = typeof CreateTvShowRequest.Type;
+export type HealthResponse = Schema.Schema.Type<typeof HealthResponse>;
