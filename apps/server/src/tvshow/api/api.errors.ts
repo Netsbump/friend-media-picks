@@ -66,14 +66,6 @@ const isTaggedError = (error: unknown): error is TaggedError =>
 
 export const toApiError = (error: unknown): ApiError => {
   if (isTaggedError(error)) {
-    if (error._tag === "SchemaValidationError") {
-      return new BadRequestApiError({
-        code: ApiErrorCode.VALIDATION_ERROR,
-        message: error.message ?? "Invalid request payload",
-        details: error.details,
-      });
-    }
-
     if (error._tag === "DomainError") {
       return new DomainApiError({
         code: error.code ?? ApiErrorCode.DOMAIN_ERROR,
