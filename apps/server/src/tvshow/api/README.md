@@ -145,9 +145,9 @@ sequenceDiagram
   Live->>Handler: call handler
   Handler->>Service: call application logic
   Service-->>Handler: fails with internal error
-  Handler-->>Live: Effect failure
-  Live->>Errors: mapToPublicApiError(error)
-  Errors-->>Live: typed public API error
+  Handler->>Errors: toApiError(error)
+  Errors-->>Handler: typed public API error
+  Handler-->>Live: Effect failure with public API error
   Live-->>Server: BadRequest / NotFound / Domain / Internal error
   Server-->>Client: encoded HTTP error response
 ```

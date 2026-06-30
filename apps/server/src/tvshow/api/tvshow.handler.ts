@@ -1,6 +1,7 @@
 import { Data, Effect } from "effect";
 import * as Schema from "effect/Schema";
 import { TvShowCatalog } from "../application/tvshow.catalog.js";
+import { toApiError } from "./api.errors.js";
 import { CreateTvShowInput, TvShowIdPathParams } from "./tvshow.api.schemas.js";
 import { toTvShowApiResponse, toTvShowsApiResponse } from "./tvshow.mappers.js";
 
@@ -31,7 +32,7 @@ export const createTvShowHandler = (input: unknown) =>
     const tvShow = yield* tvShowCatalog.add(parsedTvShow);
 
     return toTvShowApiResponse(tvShow);
-  });
+  }).pipe(Effect.mapError(toApiError));
 
 export const getTvShowHandler = (id: string) =>
   Effect.gen(function* () {
@@ -42,7 +43,7 @@ export const getTvShowHandler = (id: string) =>
     const tvShow = yield* tvShowCatalog.getById(parsedId.id);
 
     return toTvShowApiResponse(tvShow);
-  });
+  }).pipe(Effect.mapError(toApiError));
 
 export const getTvShowsHandler = () =>
   Effect.gen(function* () {
@@ -51,4 +52,4 @@ export const getTvShowsHandler = () =>
     const tvShows = yield* tvShowCatalog.list();
 
     return toTvShowsApiResponse(tvShows);
-  });
+  }).pipe(Effect.mapError(toApiError));
