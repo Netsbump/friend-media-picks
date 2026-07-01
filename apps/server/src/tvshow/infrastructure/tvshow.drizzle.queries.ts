@@ -192,7 +192,12 @@ export const makeTvShowQueries = (db: TvShowQueryExecutor) => {
             .onConflictDoNothing(),
         );
 
-  const insertTvShow = (row: TvShowInsert) => db.insert(tvShows).values(row).returning();
+  const insertTvShow = (row: TvShowInsert) =>
+    db
+      .insert(tvShows)
+      .values(row)
+      .returning()
+      .pipe(Effect.map((rows) => rows[0]));
 
   const selectTvShowById = (tvShowId: string) =>
     db.select().from(tvShows).where(eq(tvShows.id, tvShowId));
@@ -237,7 +242,8 @@ export const makeTvShowQueries = (db: TvShowQueryExecutor) => {
       .leftJoin(genres, eq(tvShowGenres.genreId, genres.id))
       .where(eq(tvShows.id, tvShowId));
 
-  const selectTvShows = () => db.select().from(tvShows);
+  const selectTvShows = (offset = 0, limit = 10) =>
+    db.select().from(tvShows).limit(limit).offset(offset);
 
   return {
     selectTvShowById,
