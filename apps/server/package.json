@@ -16,6 +16,7 @@
     "@effect/platform": "^0.96.1",
     "@effect/platform-node": "^0.106.0",
     "@effect/sql": "^0.51.1",
+    "@effect/sql-drizzle": "^0.50.0",
     "@effect/sql-pg": "^0.52.1",
     "dotenv": "^16.6.1",
     "effect": "^3.21.2",
@@ -24,7 +25,7 @@
   "devDependencies": {
     "@types/pg": "^8.20.0",
     "dotenv-cli": "^8.0.0",
-    "drizzle-kit": "1.0.0-beta.22",
-    "drizzle-orm": "1.0.0-beta.22"
+    "drizzle-kit": "0.31.10",
+    "drizzle-orm": "0.45.2"
   }
 }

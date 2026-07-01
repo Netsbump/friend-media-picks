@@ -1,13 +1,11 @@
-import * as PgDrizzle from "drizzle-orm/effect-postgres";
+import type * as PgDrizzle from "@effect/sql-drizzle/Pg";
 import * as PgClient from "@effect/sql-pg/PgClient";
 import type * as Effect from "effect/Effect";
 import { Redacted } from "effect";
 import { types } from "pg";
-import type { DbSchema } from "./db.schema.js";
+import type { DbSchema } from "./database.schema.js";
 
-export type Database = Effect.Effect.Success<
-  ReturnType<typeof PgDrizzle.makeWithDefaults<DbSchema>>
->;
+export type Database = Effect.Effect.Success<ReturnType<typeof PgDrizzle.make<DbSchema>>>;
 
 const DRIZZLE_RAW_PG_TYPE_IDS = Object.values({
   timestamptz: 1184,
@@ -37,5 +35,3 @@ export const makePgClientLayer = (connectionString: string) =>
       },
     },
   });
-
-export const makeDrizzleDb = () => PgDrizzle.makeWithDefaults<DbSchema>();

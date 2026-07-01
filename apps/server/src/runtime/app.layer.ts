@@ -1,5 +1,5 @@
 import { Layer } from "effect";
-import { DbClientLive } from "../database/db.service.js";
+import { DatabaseLive } from "../database/database.live.js";
 import { TvShowRepositoryLive } from "../tvshow/infrastructure/tvshow.repository.drizzle.js";
 import { EnvConfigLive } from "./env.service.js";
 import { TvShowCatalogLive } from "../tvshow/application/tvshow.catalog.live.js";
@@ -12,7 +12,7 @@ import { TvShowCatalogLive } from "../tvshow/application/tvshow.catalog.live.js"
  * the Layer provided to the HTTP API at startup.
  */
 export const makeAppLive = () => {
-  const DbLive = Layer.provide(DbClientLive, EnvConfigLive);
+  const DbLive = Layer.provide(DatabaseLive, EnvConfigLive);
 
   const TvShowLive = Layer.provide(TvShowRepositoryLive, DbLive);
   const TvShowCatalogAppLive = Layer.provide(TvShowCatalogLive, TvShowLive);
