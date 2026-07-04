@@ -10,30 +10,30 @@ import type {
   TvShowsApiResponse,
 } from "./tvshow.api.schemas.js";
 
-const toPersonApiResponse = (person: Director | Writer | Star): PersonResponse => ({
+const toPersonResponse = (person: Director | Writer | Star): PersonResponse => ({
   id: person.id,
   firstName: person.firstName,
   lastName: person.lastName,
 });
 
-const toGenreApiResponse = (genre: Genre): GenreResponse => ({
+const toGenreResponse = (genre: Genre): GenreResponse => ({
   id: genre.id,
   name: genre.name,
   description: genre.description,
 });
 
-export const toTvShowApiResponse = (tvShow: TvShow): TvShowApiResponse => ({
+export const toTvShowResponse = (tvShow: TvShow): TvShowApiResponse => ({
   id: tvShow.id,
   name: tvShow.name,
   description: tvShow.description,
   seasons: tvShow.seasons,
   episodes: tvShow.episodes,
   releaseAt: tvShow.releaseAt.toISOString(),
-  directors: tvShow.directors.map(toPersonApiResponse),
-  writers: tvShow.writers.map(toPersonApiResponse),
-  stars: tvShow.stars.map(toPersonApiResponse),
-  genres: tvShow.genres.map(toGenreApiResponse),
+  directors: tvShow.directors.map(toPersonResponse),
+  writers: tvShow.writers.map(toPersonResponse),
+  stars: tvShow.stars.map(toPersonResponse),
+  genres: tvShow.genres.map(toGenreResponse),
 });
 
-export const toTvShowsApiResponse = (tvShows: ReadonlyArray<TvShow>): TvShowsApiResponse =>
-  tvShows.map((tvShow) => toTvShowApiResponse(tvShow));
+export const toTvShowsResponse = (tvShows: ReadonlyArray<TvShow>): TvShowsApiResponse =>
+  tvShows.map((tvShow) => toTvShowResponse(tvShow));

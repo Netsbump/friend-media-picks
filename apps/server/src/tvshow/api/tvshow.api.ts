@@ -6,12 +6,12 @@ import {
   NotFoundApiError,
 } from "./api.errors.js";
 import {
-  CreatedTvShowApiResponse,
+  CreatedTvShowResponse,
   CreateTvShowInput,
   HealthResponse,
   TvShowIdPathParams,
-  TvShowApiResponse,
-  TvShowsApiResponse,
+  TvShowResponse,
+  TvShowsResponse,
 } from "./tvshow.api.schemas.js";
 
 const RootResponse = HttpApiSchema.Text().annotations({ description: "API landing text." });
@@ -21,16 +21,16 @@ const healthGroup = HttpApiGroup.make("Health")
   .add(HttpApiEndpoint.get("getHealth", "/health").addSuccess(HealthResponse));
 
 const tvShowsGroup = HttpApiGroup.make("TV Shows")
-  .add(HttpApiEndpoint.get("getTvShows", "/tvshows").addSuccess(TvShowsApiResponse))
+  .add(HttpApiEndpoint.get("getTvShows", "/tvshows").addSuccess(TvShowsResponse))
   .add(
     HttpApiEndpoint.get("getTvShowById", "/tvshows/:id")
       .setPath(TvShowIdPathParams)
-      .addSuccess(TvShowApiResponse),
+      .addSuccess(TvShowResponse),
   )
   .add(
     HttpApiEndpoint.post("createTvShow", "/tvshows")
       .setPayload(CreateTvShowInput)
-      .addSuccess(CreatedTvShowApiResponse),
+      .addSuccess(CreatedTvShowResponse),
   )
   .addError(BadRequestApiError)
   .addError(NotFoundApiError)

@@ -1,4 +1,4 @@
-import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
+import { relations, type InferInsertModel, type InferSelectModel } from "drizzle-orm";
 import { integer, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { genresTable } from "./genre.schema.js";
 import { personsTable } from "./person.schema.js";
@@ -68,6 +68,57 @@ export const tvShowGenresTable = pgTable(
   },
   (table) => [primaryKey({ columns: [table.tvShowId, table.genreId] })],
 );
+
+export const tvShowsRelations = relations(tvShowsTable, ({ many }) => ({
+  directors: many(tvShowDirectorsTable),
+  writers: many(tvShowWritersTable),
+  stars: many(tvShowStarsTable),
+  genres: many(tvShowGenresTable),
+}));
+
+export const tvShowDirectorsRelations = relations(tvShowDirectorsTable, ({ one }) => ({
+  tvShow: one(tvShowsTable, {
+    fields: [tvShowDirectorsTable.tvShowId],
+    references: [tvShowsTable.id],
+  }),
+  person: one(personsTable, {
+    fields: [tvShowDirectorsTable.personId],
+    references: [personsTable.id],
+  }),
+}));
+
+export const tvShowWritersRelations = relations(tvShowWritersTable, ({ one }) => ({
+  tvShow: one(tvShowsTable, {
+    fields: [tvShowWritersTable.tvShowId],
+    references: [tvShowsTable.id],
+  }),
+  person: one(personsTable, {
+    fields: [tvShowWritersTable.personId],
+    references: [personsTable.id],
+  }),
+}));
+
+export const tvShowStarsRelations = relations(tvShowStarsTable, ({ one }) => ({
+  tvShow: one(tvShowsTable, {
+    fields: [tvShowStarsTable.tvShowId],
+    references: [tvShowsTable.id],
+  }),
+  person: one(personsTable, {
+    fields: [tvShowStarsTable.personId],
+    references: [personsTable.id],
+  }),
+}));
+
+export const tvShowGenresRelations = relations(tvShowGenresTable, ({ one }) => ({
+  tvShow: one(tvShowsTable, {
+    fields: [tvShowGenresTable.tvShowId],
+    references: [tvShowsTable.id],
+  }),
+  genre: one(genresTable, {
+    fields: [tvShowGenresTable.genreId],
+    references: [genresTable.id],
+  }),
+}));
 
 export type TvShowRow = InferSelectModel<typeof tvShowsTable>;
 export type TvShowInsert = InferInsertModel<typeof tvShowsTable>;

@@ -45,7 +45,7 @@ export const GenreResponse = Schema.Struct({
 }).annotations({ identifier: "GenreResponse" });
 export type GenreResponse = Schema.Schema.Type<typeof GenreResponse>;
 
-export const TvShowApiResponse = Schema.Struct({
+export const TvShowResponse = Schema.Struct({
   id: Schema.String,
   name: Schema.String,
   description: Schema.String,
@@ -56,15 +56,15 @@ export const TvShowApiResponse = Schema.Struct({
   writers: Schema.Array(PersonResponse),
   stars: Schema.Array(PersonResponse),
   genres: Schema.Array(GenreResponse),
-}).annotations({ identifier: "TvShowApiResponse" });
-export type TvShowApiResponse = Schema.Schema.Type<typeof TvShowApiResponse>;
+}).annotations({ identifier: "TvShowResponse" });
+export type TvShowResponse = Schema.Schema.Type<typeof TvShowResponse>;
 
-export const TvShowsApiResponse = Schema.Array(TvShowApiResponse).annotations({
-  identifier: "TvShowsApiResponse",
+export const TvShowsResponse = Schema.Array(TvShowResponse).annotations({
+  identifier: "TvShowsResponse",
 });
-export type TvShowsApiResponse = Schema.Schema.Type<typeof TvShowsApiResponse>;
+export type TvShowsResponse = Schema.Schema.Type<typeof TvShowsResponse>;
 
-export const CreatedTvShowApiResponse = TvShowApiResponse.annotations(
+export const CreatedTvShowResponse = TvShowResponse.annotations(
   HttpApiSchema.annotations({ status: 201 }),
 );
 

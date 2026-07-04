@@ -1,15 +1,15 @@
-import type { Director, ValidatedDirector } from "../domain/director.js";
-import { unwrapGenreName, type Genre, type ValidatedGenre } from "../domain/genre.js";
-import type { Star, ValidatedStar } from "../domain/star.js";
-import { unwrapPersonName } from "../domain/shared/person-name.js";
-import {
-  unwrapEpisodeCount,
-  unwrapSeasonCount,
-  unwrapTvShowName,
-  type TvShow,
-  type ValidatedTvShow,
+import type { Director, DirectorCreation } from "../domain/director.js";
+import type { Genre, GenreCreation } from "../domain/genre.js";
+import type { PersonName } from "../domain/personName.js";
+import type { Star, StarCreation } from "../domain/star.js";
+import type {
+  EpisodeCount,
+  SeasonCount,
+  TvShow,
+  TvShowCreation,
+  TvShowName,
 } from "../domain/tvshow.js";
-import type { ValidatedWriter, Writer } from "../domain/writer.js";
+import type { Writer, WriterCreation } from "../domain/writer.js";
 import type { GenreInsert, GenreRow } from "../../database/schemas/genre.schema.js";
 import type { PersonInsert, PersonRow } from "../../database/schemas/person.schema.js";
 import type { TvShowInsert, TvShowRow } from "../../database/schemas/tvshow.schema.js";
@@ -17,30 +17,30 @@ import type { TvShowInsert, TvShowRow } from "../../database/schemas/tvshow.sche
 export type PersonProjection = Pick<PersonRow, "id" | "firstName" | "lastName">;
 export type GenreProjection = Pick<GenreRow, "id" | "name" | "description">;
 
-export const toTvShowInsert = (tvShow: ValidatedTvShow): TvShowInsert => ({
-  name: unwrapTvShowName(tvShow.name),
+export const toTvShowInsert = (tvShow: TvShowCreation): TvShowInsert => ({
+  name: tvShow.name,
   description: tvShow.description,
-  seasons: unwrapSeasonCount(tvShow.seasons),
-  episodes: unwrapEpisodeCount(tvShow.episodes),
+  seasons: tvShow.seasons,
+  episodes: tvShow.episodes,
   releaseAt: tvShow.releaseAt,
 });
 
 export const toPersonInsert = (
-  person: ValidatedDirector | ValidatedWriter | ValidatedStar,
+  person: DirectorCreation | WriterCreation | StarCreation,
 ): PersonInsert => ({
-  firstName: unwrapPersonName(person.firstName),
-  lastName: unwrapPersonName(person.lastName),
+  firstName: person.firstName,
+  lastName: person.lastName,
 });
 
-export const toGenreInsert = (genre: ValidatedGenre): GenreInsert => ({
-  name: unwrapGenreName(genre.name),
+export const toGenreInsert = (genre: GenreCreation): GenreInsert => ({
+  name: genre.name,
   description: genre.description,
 });
 
 export const toDirectorDomain = (person: PersonProjection): Director => ({
   id: person.id,
-  firstName: person.firstName,
-  lastName: person.lastName,
+  firstName: person.firstName as PersonName,
+  lastName: person.lastName as PersonName,
 });
 
 export const toDirectorsDomain = (
@@ -49,8 +49,8 @@ export const toDirectorsDomain = (
 
 export const toWriterDomain = (person: PersonProjection): Writer => ({
   id: person.id,
-  firstName: person.firstName,
-  lastName: person.lastName,
+  firstName: person.firstName as PersonName,
+  lastName: person.lastName as PersonName,
 });
 
 export const toWritersDomain = (writers: ReadonlyArray<PersonProjection>): ReadonlyArray<Writer> =>
@@ -58,8 +58,8 @@ export const toWritersDomain = (writers: ReadonlyArray<PersonProjection>): Reado
 
 export const toStarDomain = (person: PersonProjection): Star => ({
   id: person.id,
-  firstName: person.firstName,
-  lastName: person.lastName,
+  firstName: person.firstName as PersonName,
+  lastName: person.lastName as PersonName,
 });
 
 export const toStarsDomain = (stars: ReadonlyArray<PersonProjection>): ReadonlyArray<Star> =>
@@ -84,10 +84,10 @@ export const toTvShowDomain = (
   },
 ): TvShow => ({
   id: row.id,
-  name: row.name,
+  name: row.name as TvShowName,
   description: row.description,
-  seasons: row.seasons,
-  episodes: row.episodes,
+  seasons: row.seasons as SeasonCount,
+  episodes: row.episodes as EpisodeCount,
   releaseAt: row.releaseAt,
   directors: relations.directors,
   writers: relations.writers,
