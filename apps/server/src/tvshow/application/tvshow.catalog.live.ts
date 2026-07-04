@@ -1,6 +1,6 @@
 import { Effect, Layer } from "effect";
 import { TvShowCatalog } from "./tvshow.catalog.js";
-import { validateNewTvShow, type NewTvShowInput } from "../domain/tvshow.js";
+import { validateNewTvShow, type TvShowCreation } from "../domain/tvshow.js";
 import { TvShowRepository } from "./tvshow.repository.js";
 
 export const TvShowCatalogLive = Layer.effect(
@@ -10,15 +10,15 @@ export const TvShowCatalogLive = Layer.effect(
 
     const tvShowRepository = yield* TvShowRepository;
 
-    const add = (newTvShow: NewTvShowInput) =>
+    const add = (newTvShow: TvShowCreation) =>
       Effect.gen(function* () {
-        const validatedResult = validateNewTvShow(newTvShow);
+        const validationResult = validateNewTvShow(newTvShow);
 
-        if (!validatedResult.success) {
-          return yield* Effect.fail(validatedResult.error);
+        if (!validationResult.success) {
+          return yield* Effect.fail(validationResult.error);
         }
 
-        return yield* tvShowRepository.save(validatedResult.value);
+        return yield* tvShowRepository.save(newTvShow);
       });
 
     const getById = (tvShowId: string) => tvShowRepository.findById(tvShowId);

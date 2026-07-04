@@ -29,4 +29,5 @@
 
 ## Documentation
 
+- [ ] Ajouter un chapitre sur les monades (intuition, `Effect` comme valeur, composition avec `pipe`/`flatMap`, gestion des erreurs)
 - [ ] Ajouter un chapitre sur tests Effect (patterns `provide`, `Layer`, `catchTags`)

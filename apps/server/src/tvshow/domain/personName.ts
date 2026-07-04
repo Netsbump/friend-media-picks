@@ -1,9 +1,9 @@
-import { DomainErrorCode, domainError, type Brand, type Result } from "./type.js";
+import { DomainErrorCode, domainError, type Brand, type ValidationResult } from "./type.js";
 
 export type PersonName = Brand<string, "PersonName">;
 
-export const createPersonName = (raw: string): Result<PersonName> => {
-  const value = raw.trim();
+export const validatePersonName = (personName: string): ValidationResult => {
+  const value = personName.trim();
   if (value.length === 0) {
     return {
       success: false,
@@ -13,7 +13,6 @@ export const createPersonName = (raw: string): Result<PersonName> => {
 
   return {
     success: true,
-    value: value as PersonName,
   };
 };
 

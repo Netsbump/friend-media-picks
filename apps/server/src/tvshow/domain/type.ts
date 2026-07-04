@@ -1,5 +1,5 @@
 export const DomainErrorCode = {
-  EMPTY_TITLE: "EMPTY_TITLE",
+  EMPTY_NAME: "EMPTY_NAME",
   EMPTY_PERSON_NAME: "EMPTY_PERSON_NAME",
   INVALID_SEASONS: "INVALID_SEASONS",
   INVALID_EPISODES: "INVALID_EPISODES",
@@ -28,4 +28,13 @@ export const domainError = (code: DomainErrorCode, message: string): DomainError
  */
 export type Brand<T, B extends string> = T & { readonly __brand: B };
 
-export type Result<T> = { success: true; value: T } | { success: false; error: DomainError };
+export type DomainValidationSuccess = {
+  success: true;
+};
+
+export type DomainValidationFailure = {
+  success: false;
+  error: DomainError;
+};
+
+export type ValidationResult = DomainValidationSuccess | DomainValidationFailure;

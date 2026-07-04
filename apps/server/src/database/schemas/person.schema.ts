@@ -2,7 +2,7 @@ import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { pgTable, text, unique } from "drizzle-orm/pg-core";
 import { timestampFields, uuidField } from "./shared.schema.js";
 
-export const persons = pgTable(
+export const personsTable = pgTable(
   "persons",
   {
     ...uuidField,
@@ -13,5 +13,5 @@ export const persons = pgTable(
   (table) => [unique("persons_first_name_last_name_unique").on(table.firstName, table.lastName)],
 );
 
-export type PersonRow = InferSelectModel<typeof persons>;
-export type PersonInsert = InferInsertModel<typeof persons>;
+export type PersonRow = InferSelectModel<typeof personsTable>;
+export type PersonInsert = InferInsertModel<typeof personsTable>;

@@ -1,25 +1,15 @@
-import {
-  validateNewDirectors,
-  type Director,
-  type NewDirectorInput,
-  type ValidatedDirector,
-} from "./director.js";
-import { validateNewGenres, type Genre, type NewGenreInput, type ValidatedGenre } from "./genre.js";
-import { validateNewStars, type NewStarInput, type Star, type ValidatedStar } from "./star.js";
-import {
-  validateNewWriters,
-  type NewWriterInput,
-  type ValidatedWriter,
-  type Writer,
-} from "./writer.js";
-import { DomainErrorCode, domainError, type Brand, type Result } from "./shared/type.js";
+import { validateNewDirectors, type Director, type DirectorCreation } from "./director.js";
+import { validateNewGenres, type Genre, type GenreCreation } from "./genre.js";
+import { validateNewStars, type Star, type StarCreation } from "./star.js";
+import { validateNewWriters, type Writer, type WriterCreation } from "./writer.js";
+import { DomainErrorCode, domainError, type Brand, type ValidationResult } from "./type.js";
 
 export type TvShow = {
   id: string;
-  name: string;
+  name: TvShowName;
   description: string;
-  seasons: number;
-  episodes: number;
+  seasons: SeasonCount;
+  episodes: EpisodeCount;
   releaseAt: Date;
   directors: ReadonlyArray<Director>;
   writers: ReadonlyArray<Writer>;
@@ -30,26 +20,25 @@ export type TvShow = {
 export type TvShowName = Brand<string, "TvShowName">;
 export const unwrapTvShowName = (name: TvShowName): string => name;
 
-const createTvShowName = (raw: string): Result<TvShowName> => {
-  const value = raw.trim();
+const validateTvShowName = (tvShowName: string): ValidationResult => {
+  const value = tvShowName.trim();
   if (value.length === 0) {
     return {
       success: false,
-      error: domainError(DomainErrorCode.EMPTY_TITLE, "TvShow name cannot be empty."),
+      error: domainError(DomainErrorCode.EMPTY_NAME, "TvShow name cannot be empty."),
     };
   }
 
   return {
     success: true,
-    value: value as TvShowName,
   };
 };
 
 export type SeasonCount = Brand<number, "SeasonCount">;
 export const unwrapSeasonCount = (count: SeasonCount): number => count;
 
-const createSeasonCount = (raw: number): Result<SeasonCount> => {
-  if (!Number.isInteger(raw) || raw <= 0) {
+const validateSeasonCount = (seasonCount: number): ValidationResult => {
+  if (!Number.isInteger(seasonCount) || seasonCount <= 0) {
     return {
       success: false,
       error: domainError(DomainErrorCode.INVALID_SEASONS, "TvShow must have at least one season."),
@@ -58,15 +47,14 @@ const createSeasonCount = (raw: number): Result<SeasonCount> => {
 
   return {
     success: true,
-    value: raw as SeasonCount,
   };
 };
 
 export type EpisodeCount = Brand<number, "EpisodeCount">;
 export const unwrapEpisodeCount = (count: EpisodeCount): number => count;
 
-const createEpisodeCount = (raw: number): Result<EpisodeCount> => {
-  if (!Number.isInteger(raw) || raw <= 0) {
+const validateEpisodeCount = (episodeCount: number): ValidationResult => {
+  if (!Number.isInteger(episodeCount) || episodeCount <= 0) {
     return {
       success: false,
       error: domainError(
@@ -78,68 +66,42 @@ const createEpisodeCount = (raw: number): Result<EpisodeCount> => {
 
   return {
     success: true,
-    value: raw as EpisodeCount,
   };
 };
 
-export type NewTvShowInput = {
+export type TvShowCreation = {
   name: string;
   description: string;
   seasons: number;
   episodes: number;
   releaseAt: Date;
-  directors: ReadonlyArray<NewDirectorInput>;
-  writers: ReadonlyArray<NewWriterInput>;
-  stars: ReadonlyArray<NewStarInput>;
-  genres: ReadonlyArray<NewGenreInput>;
+  directors: ReadonlyArray<DirectorCreation>;
+  writers: ReadonlyArray<WriterCreation>;
+  stars: ReadonlyArray<StarCreation>;
+  genres: ReadonlyArray<GenreCreation>;
 };
 
-export type ValidatedTvShow = {
-  name: TvShowName;
-  description: string;
-  seasons: SeasonCount;
-  episodes: EpisodeCount;
-  releaseAt: Date;
-  directors: ReadonlyArray<ValidatedDirector>;
-  writers: ReadonlyArray<ValidatedWriter>;
-  stars: ReadonlyArray<ValidatedStar>;
-  genres: ReadonlyArray<ValidatedGenre>;
-};
-
-export const validateNewTvShow = (input: NewTvShowInput): Result<ValidatedTvShow> => {
-  const nameResult = createTvShowName(input.name);
+export const validateNewTvShow = (newTvShowCreation: TvShowCreation): ValidationResult => {
+  const nameResult = validateTvShowName(newTvShowCreation.name);
   if (!nameResult.success) return nameResult;
 
-  const seasonsResult = createSeasonCount(input.seasons);
+  const seasonsResult = validateSeasonCount(newTvShowCreation.seasons);
   if (!seasonsResult.success) return seasonsResult;
 
-  const episodesResult = createEpisodeCount(input.episodes);
+  const episodesResult = validateEpisodeCount(newTvShowCreation.episodes);
   if (!episodesResult.success) return episodesResult;
 
-  const directorsResult = validateNewDirectors(input.directors);
+  const directorsResult = validateNewDirectors(newTvShowCreation.directors);
   if (!directorsResult.success) return directorsResult;
 
-  const writersResult = validateNewWriters(input.writers);
+  const writersResult = validateNewWriters(newTvShowCreation.writers);
   if (!writersResult.success) return writersResult;
 
-  const starsResult = validateNewStars(input.stars);
+  const starsResult = validateNewStars(newTvShowCreation.stars);
   if (!starsResult.success) return starsResult;
 
-  const genresResult = validateNewGenres(input.genres);
+  const genresResult = validateNewGenres(newTvShowCreation.genres);
   if (!genresResult.success) return genresResult;
 
-  return {
-    success: true,
-    value: {
-      name: nameResult.value,
-      description: input.description,
-      seasons: seasonsResult.value,
-      episodes: episodesResult.value,
-      releaseAt: input.releaseAt,
-      directors: directorsResult.value,
-      writers: writersResult.value,
-      stars: starsResult.value,
-      genres: genresResult.value,
-    },
-  };
+  return { success: true };
 };

@@ -1,55 +1,37 @@
-import { createPersonName, type PersonName } from "./shared/person-name.js";
-import type { Result } from "./shared/type.js";
+import { validatePersonName, type PersonName } from "./personName.js";
+import type { ValidationResult } from "./type.js";
 
 export type Director = {
   id: string;
-  firstName: string;
-  lastName: string;
-};
-
-export type NewDirectorInput = {
-  firstName: string;
-  lastName: string;
-};
-
-export type ValidatedDirector = {
   firstName: PersonName;
   lastName: PersonName;
 };
 
-export const validateNewDirector = (input: NewDirectorInput): Result<ValidatedDirector> => {
-  const firstNameResult = createPersonName(input.firstName);
+export type DirectorCreation = {
+  firstName: string;
+  lastName: string;
+};
+
+export const validateNewDirector = (newDirector: DirectorCreation): ValidationResult => {
+  const firstNameResult = validatePersonName(newDirector.firstName);
   if (!firstNameResult.success) return firstNameResult;
 
-  const lastNameResult = createPersonName(input.lastName);
+  const lastNameResult = validatePersonName(newDirector.lastName);
   if (!lastNameResult.success) return lastNameResult;
 
-  return {
-    success: true,
-    value: {
-      firstName: firstNameResult.value,
-      lastName: lastNameResult.value,
-    },
-  };
+  return { success: true };
 };
 
 export const validateNewDirectors = (
-  inputs: ReadonlyArray<NewDirectorInput>,
-): Result<ReadonlyArray<ValidatedDirector>> => {
-  const directors: ValidatedDirector[] = [];
-
-  for (const input of inputs) {
-    const directorResult = validateNewDirector(input);
+  newDirectors: ReadonlyArray<DirectorCreation>,
+): ValidationResult => {
+  for (const newDirector of newDirectors) {
+    const directorResult = validateNewDirector(newDirector);
 
     if (!directorResult.success) {
       return directorResult;
     }
-
-    directors.push(directorResult.value);
   }
 
-  return {
-    success: true,
-    value: directors,
-  };
+  return { success: true };
 };

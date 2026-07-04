@@ -1,55 +1,39 @@
-import { createPersonName, type PersonName } from "./shared/person-name.js";
-import type { Result } from "./shared/type.js";
+import { validatePersonName, type PersonName } from "./personName.js";
+import type { ValidationResult } from "./type.js";
 
 export type Star = {
   id: string;
-  firstName: string;
-  lastName: string;
-};
-
-export type NewStarInput = {
-  firstName: string;
-  lastName: string;
-};
-
-export type ValidatedStar = {
   firstName: PersonName;
   lastName: PersonName;
 };
 
-export const validateNewStar = (input: NewStarInput): Result<ValidatedStar> => {
-  const firstNameResult = createPersonName(input.firstName);
+export type StarCreation = {
+  firstName: string;
+  lastName: string;
+};
+
+export const validateNewStar = (newStar: StarCreation): ValidationResult => {
+  const firstNameResult = validatePersonName(newStar.firstName);
   if (!firstNameResult.success) return firstNameResult;
 
-  const lastNameResult = createPersonName(input.lastName);
+  const lastNameResult = validatePersonName(newStar.lastName);
   if (!lastNameResult.success) return lastNameResult;
 
   return {
     success: true,
-    value: {
-      firstName: firstNameResult.value,
-      lastName: lastNameResult.value,
-    },
   };
 };
 
-export const validateNewStars = (
-  inputs: ReadonlyArray<NewStarInput>,
-): Result<ReadonlyArray<ValidatedStar>> => {
-  const stars: ValidatedStar[] = [];
-
-  for (const input of inputs) {
-    const starResult = validateNewStar(input);
+export const validateNewStars = (newStars: ReadonlyArray<StarCreation>): ValidationResult => {
+  for (const newStar of newStars) {
+    const starResult = validateNewStar(newStar);
 
     if (!starResult.success) {
       return starResult;
     }
-
-    stars.push(starResult.value);
   }
 
   return {
     success: true,
-    value: stars,
   };
 };

@@ -1,7 +1,7 @@
 import * as PgDrizzle from "@effect/sql-drizzle/Pg";
 import * as SqlClient from "@effect/sql/SqlClient";
 import { Effect, Layer } from "effect";
-import type { ValidatedTvShow } from "../domain/tvshow.js";
+import type { TvShowCreation } from "../domain/tvshow.js";
 import type { GenreRow } from "../../database/schemas/genre.schema.js";
 import type { PersonRow } from "../../database/schemas/person.schema.js";
 import type { TvShowRow } from "../../database/schemas/tvshow.schema.js";
@@ -105,6 +105,7 @@ export const TvShowRepositoryLive = Layer.effect(
     const findRelationsForTvShows = (tvShows: ReadonlyArray<TvShowRow>) =>
       Effect.gen(function* () {
         const tvShowIds = tvShows.map((tvShow) => tvShow.id);
+
         const [directors, writers, stars, genres] = yield* Effect.mapError(
           Effect.all(
             [
@@ -138,7 +139,7 @@ export const TvShowRepositoryLive = Layer.effect(
         return yield* requireRow(toTvShowAggregate(tvShowDetails), failNotFound(tvShowId));
       });
 
-    const insertTvShow = (tvShow: ValidatedTvShow) =>
+    const insertTvShow = (tvShow: TvShowCreation) =>
       Effect.gen(function* () {
         const tvShowInsert = toTvShowInsert(tvShow);
         const insertedTvShow = yield* queries.insertTvShow(tvShowInsert);
@@ -146,7 +147,7 @@ export const TvShowRepositoryLive = Layer.effect(
         return yield* requireRow(insertedTvShow, failEmptyInsert());
       });
 
-    const insertTvShowRelations = (tvShow: ValidatedTvShow) =>
+    const insertTvShowRelations = (tvShow: TvShowCreation) =>
       Effect.gen(function* () {
         const [directors, writers, stars, genres] = yield* Effect.all(
           [
@@ -172,7 +173,16 @@ export const TvShowRepositoryLive = Layer.effect(
         { concurrency: "unbounded" },
       );
 
-    const saveTvShowAggregate = (tvShow: ValidatedTvShow) =>
+    //C'est pas un aggregate dans le sens on recupere des tables qu on rien a voir avec TVSHOW -> donc pas suffixer
+    //  ```ts
+    // tvShowsTable      // objet Drizzle/table SQL
+    // TvShowRow         // une ligne complète retournée par SELECT -> y a un soucis avec ce type infer car j'ai pas les includes en gros
+    // TvShowInsert      // shape pour INSERT
+    // TvShowUpdate      // shape pour UPDATE, si besoin
+    //```
+    // TvShowDao peut etre du coup
+    //
+    const saveTvShowAggregate = (tvShow: TvShowCreation) =>
       Effect.mapError(
         sql.withTransaction(
           Effect.gen(function* () {
@@ -209,7 +219,7 @@ export const TvShowRepositoryLive = Layer.effect(
           return tvShowAggregates;
         }),
 
-      save: (tvShow: ValidatedTvShow) =>
+      save: (tvShow: TvShowCreation) =>
         Effect.gen(function* () {
           const savedTvShow = yield* saveTvShowAggregate(tvShow);
 

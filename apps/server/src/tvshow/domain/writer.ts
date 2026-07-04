@@ -1,55 +1,39 @@
-import { createPersonName, type PersonName } from "./shared/person-name.js";
-import type { Result } from "./shared/type.js";
+import { validatePersonName, type PersonName } from "./personName.js";
+import type { ValidationResult } from "./type.js";
 
 export type Writer = {
   id: string;
-  firstName: string;
-  lastName: string;
-};
-
-export type NewWriterInput = {
-  firstName: string;
-  lastName: string;
-};
-
-export type ValidatedWriter = {
   firstName: PersonName;
   lastName: PersonName;
 };
 
-export const validateNewWriter = (input: NewWriterInput): Result<ValidatedWriter> => {
-  const firstNameResult = createPersonName(input.firstName);
+export type WriterCreation = {
+  firstName: string;
+  lastName: string;
+};
+
+export const validateNewWriter = (newWriter: WriterCreation): ValidationResult => {
+  const firstNameResult = validatePersonName(newWriter.firstName);
   if (!firstNameResult.success) return firstNameResult;
 
-  const lastNameResult = createPersonName(input.lastName);
+  const lastNameResult = validatePersonName(newWriter.lastName);
   if (!lastNameResult.success) return lastNameResult;
 
   return {
     success: true,
-    value: {
-      firstName: firstNameResult.value,
-      lastName: lastNameResult.value,
-    },
   };
 };
 
-export const validateNewWriters = (
-  inputs: ReadonlyArray<NewWriterInput>,
-): Result<ReadonlyArray<ValidatedWriter>> => {
-  const writers: ValidatedWriter[] = [];
-
-  for (const input of inputs) {
-    const writerResult = validateNewWriter(input);
+export const validateNewWriters = (newWriters: ReadonlyArray<WriterCreation>): ValidationResult => {
+  for (const newWriter of newWriters) {
+    const writerResult = validateNewWriter(newWriter);
 
     if (!writerResult.success) {
       return writerResult;
     }
-
-    writers.push(writerResult.value);
   }
 
   return {
     success: true,
-    value: writers,
   };
 };
