@@ -5,14 +5,7 @@ import type { TvShowCreation } from "../domain/tvshow.js";
 import type { GenreRow } from "../../database/schemas/genre.schema.js";
 import type { PersonRow } from "../../database/schemas/person.schema.js";
 import type { TvShowRow } from "../../database/schemas/tvshow.schema.js";
-import {
-  toDirectorsDomain,
-  toGenresDomain,
-  toStarsDomain,
-  toTvShowDomain,
-  toTvShowInsert,
-  toWritersDomain,
-} from "./tvshow.mappers.js";
+import { toTvShowInsert } from "./tvshow.mappers.js";
 import { makeTvShowQueries } from "./tvshow.drizzle.queries.js";
 import { toTvShowsWithRelations, toTvShowWithRelations } from "./tvshow.repository.hydration.js";
 import {
@@ -23,11 +16,10 @@ import {
 } from "../application/repository.error.js";
 import { TvShowRepository } from "../application/tvshow.repository.js";
 
-type InsertedRelations = {
+type UpsertedTvShowPersons = {
   directors: ReadonlyArray<PersonRow>;
   writers: ReadonlyArray<PersonRow>;
   stars: ReadonlyArray<PersonRow>;
-  genres: ReadonlyArray<GenreRow>;
 };
 
 const toRepoError = (operation: RepositoryOperation, tvShowId?: string) => (e: unknown) =>
@@ -72,72 +64,25 @@ export const TvShowRepositoryLive = Layer.effect(
 
     yield* Effect.logInfo("[STARTUP] TvShowRepository wired");
 
-    const hydrateTvShow = (row: TvShowRow) =>
+    const selectTvShowRelations = (tvShowId: string) =>
       Effect.gen(function* () {
-        const [directorRows, writerRows, starRows, genreRows] = yield* Effect.all(
+        const [directors, writers, stars, genres] = yield* Effect.all(
           [
-            queries.selectDirectors(row.id),
-            queries.selectWriters(row.id),
-            queries.selectStars(row.id),
-            queries.selectGenres(row.id),
+            queries.selectDirectors(tvShowId),
+            queries.selectWriters(tvShowId),
+            queries.selectStars(tvShowId),
+            queries.selectGenres(tvShowId),
           ],
           { concurrency: "unbounded" },
         );
 
-        return toTvShowDomain(row, {
-          directors: toDirectorsDomain(directorRows),
-          writers: toWritersDomain(writerRows),
-          stars: toStarsDomain(starRows),
-          genres: toGenresDomain(genreRows),
-        });
+        return { directors, writers, stars, genres };
       });
 
-    const findTvShows = () =>
-      Effect.gen(function* () {
-        yield* Effect.logInfo("[REPO] find all tvshows start");
-
-        return yield* Effect.mapError(
-          queries.selectTvShows(),
-          toRepoError(RepositoryOperation.FIND_ALL),
-        );
-      });
-
-    const findRelationsForTvShows = (tvShows: ReadonlyArray<TvShowRow>) =>
-      Effect.gen(function* () {
-        const tvShowIds = tvShows.map((tvShow) => tvShow.id);
-
-        const [directors, writers, stars, genres] = yield* Effect.mapError(
-          Effect.all(
-            [
-              queries.selectDirectorsForTvShows(tvShowIds),
-              queries.selectWritersForTvShows(tvShowIds),
-              queries.selectStarsForTvShows(tvShowIds),
-              queries.selectGenresForTvShows(tvShowIds),
-            ],
-            { concurrency: "unbounded" },
-          ),
-          toRepoError(RepositoryOperation.FIND_ALL),
-        );
-
-        return {
-          directors,
-          writers,
-          stars,
-          genres,
-        };
-      });
-
-    const findTvShowById = (tvShowId: string) =>
-      Effect.gen(function* () {
-        yield* Effect.logInfo(`[REPO] find tvshow start id=${tvShowId}`);
-
-        const tvShowDetails = yield* Effect.mapError(
-          queries.selectTvShowWithRelationsById(tvShowId),
-          toRepoError(RepositoryOperation.FIND, tvShowId),
-        );
-
-        return yield* requireRow(toTvShowWithRelations(tvShowDetails), failNotFound(tvShowId));
-      });
+    const hydrateTvShow = (row: TvShowRow) =>
+      Effect.map(selectTvShowRelations(row.id), (relations) =>
+        toTvShowWithRelations(row, relations),
+      );
 
     const insertTvShow = (tvShow: TvShowCreation) =>
       Effect.gen(function* () {
@@ -147,81 +92,103 @@ export const TvShowRepositoryLive = Layer.effect(
         return yield* requireRow(insertedTvShow, failEmptyInsert());
       });
 
-    const insertTvShowRelations = (tvShow: TvShowCreation) =>
+    const upsertTvShowPersons = (tvShow: TvShowCreation) =>
       Effect.gen(function* () {
-        const [directors, writers, stars, genres] = yield* Effect.all(
+        const [directors, writers, stars] = yield* Effect.all(
           [
-            queries.insertPersons(tvShow.directors),
-            queries.insertPersons(tvShow.writers),
-            queries.insertPersons(tvShow.stars),
-            queries.insertGenres(tvShow.genres),
+            queries.upsertPersons(tvShow.directors),
+            queries.upsertPersons(tvShow.writers),
+            queries.upsertPersons(tvShow.stars),
           ],
           { concurrency: "unbounded" },
         );
 
-        return { directors, writers, stars, genres };
+        return { directors, writers, stars };
       });
 
-    const linkTvShowRelations = (tvShowId: string, relations: InsertedRelations) =>
+    const upsertTvShowGenres = (tvShow: TvShowCreation) => queries.upsertGenres(tvShow.genres);
+
+    const insertTvShowRelations = (
+      tvShowId: string,
+      persons: UpsertedTvShowPersons,
+      genres: ReadonlyArray<GenreRow>,
+    ) =>
       Effect.all(
         [
-          queries.insertTvShowDirectors(tvShowId, relations.directors),
-          queries.insertTvShowWriters(tvShowId, relations.writers),
-          queries.insertTvShowStars(tvShowId, relations.stars),
-          queries.insertTvShowGenres(tvShowId, relations.genres),
+          queries.insertTvShowDirectors(tvShowId, persons.directors),
+          queries.insertTvShowWriters(tvShowId, persons.writers),
+          queries.insertTvShowStars(tvShowId, persons.stars),
+          queries.insertTvShowGenres(tvShowId, genres),
         ],
         { concurrency: "unbounded" },
-      );
-
-    //C'est pas un aggregate dans le sens on recupere des tables qu on rien a voir avec TVSHOW -> donc pas suffixer
-    //  ```ts
-    // tvShowsTable      // objet Drizzle/table SQL
-    // TvShowRow         // une ligne complète retournée par SELECT -> y a un soucis avec ce type infer car j'ai pas les includes en gros
-    // TvShowInsert      // shape pour INSERT
-    // TvShowUpdate      // shape pour UPDATE, si besoin
-    //```
-    // TvShowDao peut etre du coup
-    //
-    const saveTvShowWithRelations = (tvShow: TvShowCreation) =>
-      Effect.mapError(
-        sql.withTransaction(
-          Effect.gen(function* () {
-            yield* Effect.logInfo("[REPO] save tvshow start");
-
-            const insertedTvShow = yield* insertTvShow(tvShow);
-            const relations = yield* insertTvShowRelations(tvShow);
-            yield* linkTvShowRelations(insertedTvShow.id, relations);
-
-            return yield* hydrateTvShow(insertedTvShow);
-          }),
-        ),
-        toRepoError(RepositoryOperation.SAVE),
       );
 
     return {
       findById: (tvShowId: string) =>
         Effect.gen(function* () {
-          const tvShow = yield* findTvShowById(tvShowId);
+          yield* Effect.logInfo(`[REPO] find tvshow start id=${tvShowId}`);
+
+          const tvShowRows = yield* Effect.mapError(
+            queries.selectTvShowById(tvShowId),
+            toRepoError(RepositoryOperation.FIND, tvShowId),
+          );
+
+          const tvShow = yield* requireRow(tvShowRows[0], failNotFound(tvShowId));
+          const relations = yield* Effect.mapError(
+            selectTvShowRelations(tvShowId),
+            toRepoError(RepositoryOperation.FIND, tvShowId),
+          );
 
           yield* Effect.logInfo(`[REPO] find tvshow success id=${tvShowId}`);
 
-          return tvShow;
+          return toTvShowWithRelations(tvShow, relations);
         }),
 
       findAll: () =>
         Effect.gen(function* () {
-          const tvShows = yield* findTvShows();
-          const relations = yield* findRelationsForTvShows(tvShows);
-          const tvShowsWithRelations = toTvShowsWithRelations(tvShows, relations);
+          yield* Effect.logInfo("[REPO] find all tvshows start");
+
+          const tvShows = yield* Effect.mapError(
+            queries.selectTvShows(),
+            toRepoError(RepositoryOperation.FIND_ALL),
+          );
+          const tvShowIds = tvShows.map((tvShow) => tvShow.id);
+
+          const [directors, writers, stars, genres] = yield* Effect.mapError(
+            Effect.all(
+              [
+                queries.selectDirectorsForTvShows(tvShowIds),
+                queries.selectWritersForTvShows(tvShowIds),
+                queries.selectStarsForTvShows(tvShowIds),
+                queries.selectGenresForTvShows(tvShowIds),
+              ],
+              { concurrency: "unbounded" },
+            ),
+            toRepoError(RepositoryOperation.FIND_ALL),
+          );
 
           yield* Effect.logInfo("[REPO] find all tvshows success");
 
-          return tvShowsWithRelations;
+          return toTvShowsWithRelations(tvShows, { directors, writers, stars, genres });
         }),
 
       save: (tvShow: TvShowCreation) =>
         Effect.gen(function* () {
-          const savedTvShow = yield* saveTvShowWithRelations(tvShow);
+          const savedTvShow = yield* Effect.mapError(
+            sql.withTransaction(
+              Effect.gen(function* () {
+                yield* Effect.logInfo("[REPO] save tvshow start");
+
+                const insertedTvShow = yield* insertTvShow(tvShow);
+                const persons = yield* upsertTvShowPersons(tvShow);
+                const genres = yield* upsertTvShowGenres(tvShow);
+                yield* insertTvShowRelations(insertedTvShow.id, persons, genres);
+
+                return yield* hydrateTvShow(insertedTvShow);
+              }),
+            ),
+            toRepoError(RepositoryOperation.SAVE),
+          );
 
           yield* Effect.logInfo("[REPO] save tvshow success");
 

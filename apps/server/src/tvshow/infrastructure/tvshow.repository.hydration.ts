@@ -1,3 +1,5 @@
+import type { GenreRow } from "../../database/schemas/genre.schema.js";
+import type { PersonRow } from "../../database/schemas/person.schema.js";
 import type { TvShowRow } from "../../database/schemas/tvshow.schema.js";
 import {
   toDirectorsDomain,
@@ -5,60 +7,24 @@ import {
   toStarsDomain,
   toTvShowDomain,
   toWritersDomain,
-  type GenreProjection,
-  type PersonProjection,
 } from "./tvshow.mappers.js";
 
-type PersonRelationProjection = PersonProjection & { tvShowId: string };
-type GenreRelationProjection = GenreProjection & { tvShowId: string };
+type PersonRelationRow = PersonRow & { tvShowId: string };
+type GenreRelationRow = GenreRow & { tvShowId: string };
 
-type NullablePersonRelationProjection = {
-  tvShowId: string | null;
-  id: string | null;
-  firstName: string | null;
-  lastName: string | null;
-} | null;
-
-type NullableGenreRelationProjection = {
-  tvShowId: string | null;
-  id: string | null;
-  name: string | null;
-  description: string | null;
-} | null;
-
-export type TvShowJoinedRow = {
-  tvShow: TvShowRow;
-  director: NullablePersonRelationProjection;
-  writer: NullablePersonRelationProjection;
-  star: NullablePersonRelationProjection;
-  genre: NullableGenreRelationProjection;
+type TvShowRelationRows = {
+  directors: ReadonlyArray<PersonRow>;
+  writers: ReadonlyArray<PersonRow>;
+  stars: ReadonlyArray<PersonRow>;
+  genres: ReadonlyArray<GenreRow>;
 };
 
-export type TvShowRelationRows = {
-  directors: ReadonlyArray<PersonRelationProjection>;
-  writers: ReadonlyArray<PersonRelationProjection>;
-  stars: ReadonlyArray<PersonRelationProjection>;
-  genres: ReadonlyArray<GenreRelationProjection>;
+export type TvShowRelationRowsByTvShow = {
+  directors: ReadonlyArray<PersonRelationRow>;
+  writers: ReadonlyArray<PersonRelationRow>;
+  stars: ReadonlyArray<PersonRelationRow>;
+  genres: ReadonlyArray<GenreRelationRow>;
 };
-
-const isPersonRelationProjection = (
-  row: NullablePersonRelationProjection,
-): row is PersonRelationProjection =>
-  row !== null &&
-  row.tvShowId !== null &&
-  row.id !== null &&
-  row.firstName !== null &&
-  row.lastName !== null;
-
-const isGenreRelationProjection = (
-  row: NullableGenreRelationProjection,
-): row is GenreRelationProjection =>
-  row !== null &&
-  row.tvShowId !== null &&
-  row.id !== null &&
-  row.name !== null &&
-  row.description !== null;
-
 const uniqueById = <Row extends { id: string }>(rows: ReadonlyArray<Row>): Row[] => {
   const rowsById = new Map<string, Row>();
 
@@ -81,32 +47,17 @@ const groupByTvShowId = <Row extends { tvShowId: string }>(rows: ReadonlyArray<R
   return rowsByTvShowId;
 };
 
-const extractPersons = (
-  rows: ReadonlyArray<TvShowJoinedRow>,
-  relation: "director" | "writer" | "star",
-) => uniqueById(rows.map((row) => row[relation]).filter((row) => isPersonRelationProjection(row)));
-
-const extractGenres = (rows: ReadonlyArray<TvShowJoinedRow>) =>
-  uniqueById(rows.map((row) => row.genre).filter((row) => isGenreRelationProjection(row)));
-
-export const toTvShowWithRelations = (details: ReadonlyArray<TvShowJoinedRow>) => {
-  const firstDetail = details[0];
-
-  if (firstDetail === undefined) {
-    return;
-  }
-
-  return toTvShowDomain(firstDetail.tvShow, {
-    directors: toDirectorsDomain(extractPersons(details, "director")),
-    writers: toWritersDomain(extractPersons(details, "writer")),
-    stars: toStarsDomain(extractPersons(details, "star")),
-    genres: toGenresDomain(extractGenres(details)),
+export const toTvShowWithRelations = (row: TvShowRow, relations: TvShowRelationRows) =>
+  toTvShowDomain(row, {
+    directors: toDirectorsDomain(uniqueById(relations.directors)),
+    writers: toWritersDomain(uniqueById(relations.writers)),
+    stars: toStarsDomain(uniqueById(relations.stars)),
+    genres: toGenresDomain(uniqueById(relations.genres)),
   });
-};
 
 export const toTvShowsWithRelations = (
   rows: ReadonlyArray<TvShowRow>,
-  relations: TvShowRelationRows,
+  relations: TvShowRelationRowsByTvShow,
 ) => {
   const directorsByTvShowId = groupByTvShowId(relations.directors);
   const writersByTvShowId = groupByTvShowId(relations.writers);
@@ -114,11 +65,11 @@ export const toTvShowsWithRelations = (
   const genresByTvShowId = groupByTvShowId(relations.genres);
 
   return rows.map((row) =>
-    toTvShowDomain(row, {
-      directors: toDirectorsDomain(uniqueById(directorsByTvShowId.get(row.id) ?? [])),
-      writers: toWritersDomain(uniqueById(writersByTvShowId.get(row.id) ?? [])),
-      stars: toStarsDomain(uniqueById(starsByTvShowId.get(row.id) ?? [])),
-      genres: toGenresDomain(uniqueById(genresByTvShowId.get(row.id) ?? [])),
+    toTvShowWithRelations(row, {
+      directors: directorsByTvShowId.get(row.id) ?? [],
+      writers: writersByTvShowId.get(row.id) ?? [],
+      stars: starsByTvShowId.get(row.id) ?? [],
+      genres: genresByTvShowId.get(row.id) ?? [],
     }),
   );
 };

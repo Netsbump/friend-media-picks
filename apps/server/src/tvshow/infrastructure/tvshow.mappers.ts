@@ -14,9 +14,6 @@ import type { GenreInsert, GenreRow } from "../../database/schemas/genre.schema.
 import type { PersonInsert, PersonRow } from "../../database/schemas/person.schema.js";
 import type { TvShowInsert, TvShowRow } from "../../database/schemas/tvshow.schema.js";
 
-export type PersonProjection = Pick<PersonRow, "id" | "firstName" | "lastName">;
-export type GenreProjection = Pick<GenreRow, "id" | "name" | "description">;
-
 export const toTvShowInsert = (tvShow: TvShowCreation): TvShowInsert => ({
   name: tvShow.name,
   description: tvShow.description,
@@ -37,41 +34,40 @@ export const toGenreInsert = (genre: GenreCreation): GenreInsert => ({
   description: genre.description,
 });
 
-export const toDirectorDomain = (person: PersonProjection): Director => ({
+export const toDirectorDomain = (person: PersonRow): Director => ({
   id: person.id,
   firstName: person.firstName as PersonName,
   lastName: person.lastName as PersonName,
 });
 
-export const toDirectorsDomain = (
-  directors: ReadonlyArray<PersonProjection>,
-): ReadonlyArray<Director> => directors.map((director) => toDirectorDomain(director));
+export const toDirectorsDomain = (directors: ReadonlyArray<PersonRow>): ReadonlyArray<Director> =>
+  directors.map((director) => toDirectorDomain(director));
 
-export const toWriterDomain = (person: PersonProjection): Writer => ({
+export const toWriterDomain = (person: PersonRow): Writer => ({
   id: person.id,
   firstName: person.firstName as PersonName,
   lastName: person.lastName as PersonName,
 });
 
-export const toWritersDomain = (writers: ReadonlyArray<PersonProjection>): ReadonlyArray<Writer> =>
+export const toWritersDomain = (writers: ReadonlyArray<PersonRow>): ReadonlyArray<Writer> =>
   writers.map((writer) => toWriterDomain(writer));
 
-export const toStarDomain = (person: PersonProjection): Star => ({
+export const toStarDomain = (person: PersonRow): Star => ({
   id: person.id,
   firstName: person.firstName as PersonName,
   lastName: person.lastName as PersonName,
 });
 
-export const toStarsDomain = (stars: ReadonlyArray<PersonProjection>): ReadonlyArray<Star> =>
+export const toStarsDomain = (stars: ReadonlyArray<PersonRow>): ReadonlyArray<Star> =>
   stars.map((star) => toStarDomain(star));
 
-export const toGenreDomain = (genre: GenreProjection): Genre => ({
+export const toGenreDomain = (genre: GenreRow): Genre => ({
   id: genre.id,
   name: genre.name as GenreName,
   description: genre.description,
 });
 
-export const toGenresDomain = (genres: ReadonlyArray<GenreProjection>): ReadonlyArray<Genre> =>
+export const toGenresDomain = (genres: ReadonlyArray<GenreRow>): ReadonlyArray<Genre> =>
   genres.map((genre) => toGenreDomain(genre));
 
 export const toTvShowDomain = (

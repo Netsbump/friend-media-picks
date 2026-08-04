@@ -1,6 +1,5 @@
 import "@effect/sql-drizzle/Pg";
 import { eq, inArray, sql } from "drizzle-orm";
-import { alias } from "drizzle-orm/pg-core";
 import { Effect } from "effect";
 import type { DirectorCreation } from "../domain/director.js";
 import type { GenreCreation } from "../domain/genre.js";
@@ -35,34 +34,54 @@ const toUniquePersonInserts = (
 };
 
 export const makeTvShowQueries = (db: TvShowQueryExecutor) => {
-  const directorPersons = alias(personsTable, "director_persons");
-  const writerPersons = alias(personsTable, "writer_persons");
-  const starPersons = alias(personsTable, "star_persons");
-
   const selectDirectors = (tvShowId: string) =>
     db
-      .select({ id: personsTable.id, firstName: personsTable.firstName, lastName: personsTable.lastName })
+      .select({
+        id: personsTable.id,
+        firstName: personsTable.firstName,
+        lastName: personsTable.lastName,
+        createdAt: personsTable.createdAt,
+        updatedAt: personsTable.updatedAt,
+      })
       .from(tvShowDirectorsTable)
       .innerJoin(personsTable, eq(tvShowDirectorsTable.personId, personsTable.id))
       .where(eq(tvShowDirectorsTable.tvShowId, tvShowId));
 
   const selectWriters = (tvShowId: string) =>
     db
-      .select({ id: personsTable.id, firstName: personsTable.firstName, lastName: personsTable.lastName })
+      .select({
+        id: personsTable.id,
+        firstName: personsTable.firstName,
+        lastName: personsTable.lastName,
+        createdAt: personsTable.createdAt,
+        updatedAt: personsTable.updatedAt,
+      })
       .from(tvShowWritersTable)
       .innerJoin(personsTable, eq(tvShowWritersTable.personId, personsTable.id))
       .where(eq(tvShowWritersTable.tvShowId, tvShowId));
 
   const selectStars = (tvShowId: string) =>
     db
-      .select({ id: personsTable.id, firstName: personsTable.firstName, lastName: personsTable.lastName })
+      .select({
+        id: personsTable.id,
+        firstName: personsTable.firstName,
+        lastName: personsTable.lastName,
+        createdAt: personsTable.createdAt,
+        updatedAt: personsTable.updatedAt,
+      })
       .from(tvShowStarsTable)
       .innerJoin(personsTable, eq(tvShowStarsTable.personId, personsTable.id))
       .where(eq(tvShowStarsTable.tvShowId, tvShowId));
 
   const selectGenres = (tvShowId: string) =>
     db
-      .select({ id: genresTable.id, name: genresTable.name, description: genresTable.description })
+      .select({
+        id: genresTable.id,
+        name: genresTable.name,
+        description: genresTable.description,
+        createdAt: genresTable.createdAt,
+        updatedAt: genresTable.updatedAt,
+      })
       .from(tvShowGenresTable)
       .innerJoin(genresTable, eq(tvShowGenresTable.genreId, genresTable.id))
       .where(eq(tvShowGenresTable.tvShowId, tvShowId));
@@ -76,6 +95,8 @@ export const makeTvShowQueries = (db: TvShowQueryExecutor) => {
             id: personsTable.id,
             firstName: personsTable.firstName,
             lastName: personsTable.lastName,
+            createdAt: personsTable.createdAt,
+            updatedAt: personsTable.updatedAt,
           })
           .from(tvShowDirectorsTable)
           .innerJoin(personsTable, eq(tvShowDirectorsTable.personId, personsTable.id))
@@ -90,6 +111,8 @@ export const makeTvShowQueries = (db: TvShowQueryExecutor) => {
             id: personsTable.id,
             firstName: personsTable.firstName,
             lastName: personsTable.lastName,
+            createdAt: personsTable.createdAt,
+            updatedAt: personsTable.updatedAt,
           })
           .from(tvShowWritersTable)
           .innerJoin(personsTable, eq(tvShowWritersTable.personId, personsTable.id))
@@ -104,6 +127,8 @@ export const makeTvShowQueries = (db: TvShowQueryExecutor) => {
             id: personsTable.id,
             firstName: personsTable.firstName,
             lastName: personsTable.lastName,
+            createdAt: personsTable.createdAt,
+            updatedAt: personsTable.updatedAt,
           })
           .from(tvShowStarsTable)
           .innerJoin(personsTable, eq(tvShowStarsTable.personId, personsTable.id))
@@ -118,14 +143,14 @@ export const makeTvShowQueries = (db: TvShowQueryExecutor) => {
             id: genresTable.id,
             name: genresTable.name,
             description: genresTable.description,
+            createdAt: genresTable.createdAt,
+            updatedAt: genresTable.updatedAt,
           })
           .from(tvShowGenresTable)
           .innerJoin(genresTable, eq(tvShowGenresTable.genreId, genresTable.id))
           .where(inArray(tvShowGenresTable.tvShowId, tvShowIds));
 
-  const insertPersons = (
-    input: ReadonlyArray<DirectorCreation | WriterCreation | StarCreation>,
-  ) =>
+  const upsertPersons = (input: ReadonlyArray<DirectorCreation | WriterCreation | StarCreation>) =>
     input.length === 0
       ? Effect.succeed([])
       : db
@@ -140,7 +165,7 @@ export const makeTvShowQueries = (db: TvShowQueryExecutor) => {
           })
           .returning();
 
-  const insertGenres = (input: ReadonlyArray<GenreCreation>) =>
+  const upsertGenres = (input: ReadonlyArray<GenreCreation>) =>
     input.length === 0
       ? Effect.succeed([])
       : db
@@ -202,55 +227,14 @@ export const makeTvShowQueries = (db: TvShowQueryExecutor) => {
   const selectTvShowById = (tvShowId: string) =>
     db.select().from(tvShowsTable).where(eq(tvShowsTable.id, tvShowId));
 
-  const selectTvShowWithRelationsById = (tvShowId: string) =>
-    db
-      .select({
-        tvShow: tvShowsTable,
-        director: {
-          tvShowId: tvShowDirectorsTable.tvShowId,
-          id: directorPersons.id,
-          firstName: directorPersons.firstName,
-          lastName: directorPersons.lastName,
-        },
-        writer: {
-          tvShowId: tvShowWritersTable.tvShowId,
-          id: writerPersons.id,
-          firstName: writerPersons.firstName,
-          lastName: writerPersons.lastName,
-        },
-        star: {
-          tvShowId: tvShowStarsTable.tvShowId,
-          id: starPersons.id,
-          firstName: starPersons.firstName,
-          lastName: starPersons.lastName,
-        },
-        genre: {
-          tvShowId: tvShowGenresTable.tvShowId,
-          id: genresTable.id,
-          name: genresTable.name,
-          description: genresTable.description,
-        },
-      })
-      .from(tvShowsTable)
-      .leftJoin(tvShowDirectorsTable, eq(tvShowDirectorsTable.tvShowId, tvShowsTable.id))
-      .leftJoin(directorPersons, eq(tvShowDirectorsTable.personId, directorPersons.id))
-      .leftJoin(tvShowWritersTable, eq(tvShowWritersTable.tvShowId, tvShowsTable.id))
-      .leftJoin(writerPersons, eq(tvShowWritersTable.personId, writerPersons.id))
-      .leftJoin(tvShowStarsTable, eq(tvShowStarsTable.tvShowId, tvShowsTable.id))
-      .leftJoin(starPersons, eq(tvShowStarsTable.personId, starPersons.id))
-      .leftJoin(tvShowGenresTable, eq(tvShowGenresTable.tvShowId, tvShowsTable.id))
-      .leftJoin(genresTable, eq(tvShowGenresTable.genreId, genresTable.id))
-      .where(eq(tvShowsTable.id, tvShowId));
-
   const selectTvShows = (offset = 0, limit = 10) =>
     db.select().from(tvShowsTable).limit(limit).offset(offset);
 
   return {
     selectTvShowById,
-    selectTvShowWithRelationsById,
     selectTvShows,
-    insertGenres,
-    insertPersons,
+    upsertGenres,
+    upsertPersons,
     insertTvShow,
     insertTvShowDirectors,
     insertTvShowGenres,
