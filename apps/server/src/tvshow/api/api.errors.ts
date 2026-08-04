@@ -1,6 +1,6 @@
 import { HttpApiSchema } from "@effect/platform";
 import * as Schema from "effect/Schema";
-import { RepositoryErrorCode } from "../application/repository.error.js";
+import { TvShowCatalogErrorCode } from "../application/tvshow.catalog.error.js";
 
 export const ApiErrorCode = {
   VALIDATION_ERROR: "VALIDATION_ERROR",
@@ -58,6 +58,7 @@ type TaggedError = {
   _tag: string;
   message?: string;
   details?: unknown;
+  cause?: unknown;
   code?: string;
 };
 
@@ -65,30 +66,27 @@ const isTaggedError = (error: unknown): error is TaggedError =>
   Boolean(error && typeof error === "object" && "_tag" in error);
 
 export const toApiError = (error: unknown): ApiError => {
-  if (isTaggedError(error)) {
-    if (error._tag === "DomainError") {
+  if (isTaggedError(error) && error._tag === "TvShowCatalogError") {
+    if (error.code === TvShowCatalogErrorCode.VALIDATION_FAILED) {
       return new DomainApiError({
-        code: error.code ?? ApiErrorCode.DOMAIN_ERROR,
+        code: error.code,
         message: error.message ?? "Domain validation failed",
+        details: isDevelopment() ? error.cause : undefined,
       });
     }
 
-    if (error._tag === "RepositoryError") {
-      const isNotFound = error.code === RepositoryErrorCode.NOT_FOUND;
-
-      return isNotFound
-        ? new NotFoundApiError({
-            code: ApiErrorCode.NOT_FOUND,
-            message: "Resource not found",
-          })
-        : new InternalApiError({
-            code: ApiErrorCode.PERSISTENCE_ERROR,
-            message: "Persistence failed",
-            details: isDevelopment()
-              ? { internalMessage: error.message, context: error.details }
-              : undefined,
-          });
+    if (error.code === TvShowCatalogErrorCode.NOT_FOUND) {
+      return new NotFoundApiError({
+        code: ApiErrorCode.NOT_FOUND,
+        message: "Resource not found",
+      });
     }
+
+    return new InternalApiError({
+      code: ApiErrorCode.PERSISTENCE_ERROR,
+      message: "Persistence failed",
+      details: isDevelopment() ? error.cause : undefined,
+    });
   }
 
   return new InternalApiError({

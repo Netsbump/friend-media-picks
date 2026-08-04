@@ -6,8 +6,8 @@ import type { Writer } from "../domain/writer.js";
 import type {
   GenreResponse,
   PersonResponse,
-  TvShowApiResponse,
-  TvShowsApiResponse,
+  TvShowResponse,
+  TvShowsResponse,
 } from "./tvshow.api.schemas.js";
 
 const toPersonResponse = (person: Director | Writer | Star): PersonResponse => ({
@@ -22,7 +22,7 @@ const toGenreResponse = (genre: Genre): GenreResponse => ({
   description: genre.description,
 });
 
-export const toTvShowResponse = (tvShow: TvShow): TvShowApiResponse => ({
+export const toTvShowResponse = (tvShow: TvShow): TvShowResponse => ({
   id: tvShow.id,
   name: tvShow.name,
   description: tvShow.description,
@@ -35,5 +35,5 @@ export const toTvShowResponse = (tvShow: TvShow): TvShowApiResponse => ({
   genres: tvShow.genres.map(toGenreResponse),
 });
 
-export const toTvShowsResponse = (tvShows: ReadonlyArray<TvShow>): TvShowsApiResponse =>
+export const toTvShowsResponse = (tvShows: ReadonlyArray<TvShow>): TvShowsResponse =>
   tvShows.map((tvShow) => toTvShowResponse(tvShow));

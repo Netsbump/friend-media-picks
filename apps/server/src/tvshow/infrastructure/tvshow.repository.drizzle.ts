@@ -14,7 +14,7 @@ import {
   toWritersDomain,
 } from "./tvshow.mappers.js";
 import { makeTvShowQueries } from "./tvshow.drizzle.queries.js";
-import { toTvShowAggregate, toTvShowAggregates } from "./tvshow.repository.hydration.js";
+import { toTvShowsWithRelations, toTvShowWithRelations } from "./tvshow.repository.hydration.js";
 import {
   RepositoryEntity,
   RepositoryError,
@@ -32,7 +32,7 @@ type InsertedRelations = {
 
 const toRepoError = (operation: RepositoryOperation, tvShowId?: string) => (e: unknown) =>
   new RepositoryError({
-    code: RepositoryErrorCode.DB_FAILURE,
+    code: RepositoryErrorCode.PERSISTENCE_FAILURE,
     entity: RepositoryEntity.TVSHOW,
     operation,
     message: e instanceof Error ? e.message : String(e),
@@ -44,7 +44,7 @@ const toRepoError = (operation: RepositoryOperation, tvShowId?: string) => (e: u
 
 const failEmptyInsert = () =>
   new RepositoryError({
-    code: RepositoryErrorCode.DB_EMPTY_RESULT,
+    code: RepositoryErrorCode.EMPTY_RESULT,
     entity: RepositoryEntity.TVSHOW,
     operation: RepositoryOperation.SAVE,
     message: "Insert did not return a row",
@@ -136,7 +136,7 @@ export const TvShowRepositoryLive = Layer.effect(
           toRepoError(RepositoryOperation.FIND, tvShowId),
         );
 
-        return yield* requireRow(toTvShowAggregate(tvShowDetails), failNotFound(tvShowId));
+        return yield* requireRow(toTvShowWithRelations(tvShowDetails), failNotFound(tvShowId));
       });
 
     const insertTvShow = (tvShow: TvShowCreation) =>
@@ -182,7 +182,7 @@ export const TvShowRepositoryLive = Layer.effect(
     //```
     // TvShowDao peut etre du coup
     //
-    const saveTvShowAggregate = (tvShow: TvShowCreation) =>
+    const saveTvShowWithRelations = (tvShow: TvShowCreation) =>
       Effect.mapError(
         sql.withTransaction(
           Effect.gen(function* () {
@@ -212,16 +212,16 @@ export const TvShowRepositoryLive = Layer.effect(
         Effect.gen(function* () {
           const tvShows = yield* findTvShows();
           const relations = yield* findRelationsForTvShows(tvShows);
-          const tvShowAggregates = toTvShowAggregates(tvShows, relations);
+          const tvShowsWithRelations = toTvShowsWithRelations(tvShows, relations);
 
           yield* Effect.logInfo("[REPO] find all tvshows success");
 
-          return tvShowAggregates;
+          return tvShowsWithRelations;
         }),
 
       save: (tvShow: TvShowCreation) =>
         Effect.gen(function* () {
-          const savedTvShow = yield* saveTvShowAggregate(tvShow);
+          const savedTvShow = yield* saveTvShowWithRelations(tvShow);
 
           yield* Effect.logInfo("[REPO] save tvshow success");
 

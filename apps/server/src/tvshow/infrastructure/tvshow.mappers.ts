@@ -1,5 +1,5 @@
 import type { Director, DirectorCreation } from "../domain/director.js";
-import type { Genre, GenreCreation } from "../domain/genre.js";
+import type { Genre, GenreCreation, GenreName } from "../domain/genre.js";
 import type { PersonName } from "../domain/personName.js";
 import type { Star, StarCreation } from "../domain/star.js";
 import type {
@@ -67,7 +67,7 @@ export const toStarsDomain = (stars: ReadonlyArray<PersonProjection>): ReadonlyA
 
 export const toGenreDomain = (genre: GenreProjection): Genre => ({
   id: genre.id,
-  name: genre.name,
+  name: genre.name as GenreName,
   description: genre.description,
 });
 

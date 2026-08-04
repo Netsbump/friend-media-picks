@@ -2,8 +2,8 @@ import { Data } from "effect";
 
 export const RepositoryErrorCode = {
   NOT_FOUND: "NOT_FOUND",
-  DB_FAILURE: "DB_FAILURE",
-  DB_EMPTY_RESULT: "DB_EMPTY_RESULT",
+  PERSISTENCE_FAILURE: "PERSISTENCE_FAILURE",
+  EMPTY_RESULT: "EMPTY_RESULT",
 } as const;
 
 export const RepositoryEntity = {

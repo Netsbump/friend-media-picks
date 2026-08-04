@@ -89,7 +89,7 @@ const extractPersons = (
 const extractGenres = (rows: ReadonlyArray<TvShowJoinedRow>) =>
   uniqueById(rows.map((row) => row.genre).filter((row) => isGenreRelationProjection(row)));
 
-export const toTvShowAggregate = (details: ReadonlyArray<TvShowJoinedRow>) => {
+export const toTvShowWithRelations = (details: ReadonlyArray<TvShowJoinedRow>) => {
   const firstDetail = details[0];
 
   if (firstDetail === undefined) {
@@ -104,7 +104,7 @@ export const toTvShowAggregate = (details: ReadonlyArray<TvShowJoinedRow>) => {
   });
 };
 
-export const toTvShowAggregates = (
+export const toTvShowsWithRelations = (
   rows: ReadonlyArray<TvShowRow>,
   relations: TvShowRelationRows,
 ) => {
